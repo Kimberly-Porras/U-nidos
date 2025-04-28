@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'shared_preferences.dart';
 import 'login_screen.dart';
+import 'services/home_screen.dart'; // <<--- AQUI IMPORTAS HomeScreen
 
 void main() {
   runApp(const UNidosApp());
@@ -56,10 +57,10 @@ class _UNidosAppState extends State<UNidosApp> {
           primary: colorPrimario,
         ),
       ),
-      home:
-          universidadSeleccionada == null
-              ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
-              : LoginScreen(),
+      home: universidadSeleccionada == null
+          ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
+          : LoginScreen(), // ← Aquí sigue mostrando Login primero
+      // : HomeScreen(), // ← si quieres que abra directo HomeScreen en pruebas
     );
   }
 }
@@ -87,18 +88,15 @@ class SeleccionarUniversidad extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
-                items:
-                    universidades.map((uni) {
-                      return DropdownMenuItem<String>(
-                        value: uni,
-                        child: Text(uni),
-                      );
-                    }).toList(),
+                items: universidades.map((uni) {
+                  return DropdownMenuItem<String>(
+                    value: uni,
+                    child: Text(uni),
+                  );
+                }).toList(),
                 onChanged: (valor) async {
                   if (valor != null) {
-                    await SharedPrefsService.guardarUniversidad(
-                      valor,
-                    ); // ✅ Usar el servicio
+                    await SharedPrefsService.guardarUniversidad(valor);
                     onSeleccion();
                   }
                 },
