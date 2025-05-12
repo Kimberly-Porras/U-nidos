@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'auth/bloc/auth_bloc.dart';
 import 'shared_preferences.dart';
 import 'services/login_screen.dart';
 import 'services/home_screen.dart';
-import 'auth/bloc/auth_bloc.dart';
 import 'auth/bloc/auth_event.dart';
 import 'auth/bloc/auth_state.dart';
 import 'auth/repository/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() {
+// 👇 NUEVO: clave global para usar con ScaffoldMessenger
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const UNidosApp());
 }
 
@@ -56,6 +64,7 @@ class _UNidosAppState extends State<UNidosApp> {
       child: BlocProvider(
         create: (_) => AuthBloc(authRepository),
         child: MaterialApp(
+          scaffoldMessengerKey: scaffoldMessengerKey, // ✅ Clave correcta
           debugShowCheckedModeBanner: false,
           title: 'U-NIDOS',
           theme: ThemeData(
@@ -69,10 +78,9 @@ class _UNidosAppState extends State<UNidosApp> {
               primary: colorPrimario,
             ),
           ),
-          home:
-              universidadSeleccionada == null
-                  ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
-                  : const AuthWrapper(), // Widget que escucha el estado de autenticación
+          home: universidadSeleccionada == null
+              ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
+              : const AuthWrapper(),
         ),
       ),
     );
@@ -102,13 +110,12 @@ class SeleccionarUniversidad extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
-                items:
-                    universidades.map((uni) {
-                      return DropdownMenuItem<String>(
-                        value: uni,
-                        child: Text(uni),
-                      );
-                    }).toList(),
+                items: universidades.map((uni) {
+                  return DropdownMenuItem<String>(
+                    value: uni,
+                    child: Text(uni),
+                  );
+                }).toList(),
                 onChanged: (valor) async {
                   if (valor != null) {
                     await SharedPrefsService.guardarUniversidad(valor);

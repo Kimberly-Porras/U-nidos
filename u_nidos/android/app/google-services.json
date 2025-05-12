@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591644049352",
+    "project_id": "u-nidos-14954",
+    "storage_bucket": "u-nidos-14954.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591644049352:android:a3a980cd5af0ec4aec0afd",
+        "android_client_info": {
+          "package_name": "com.example.u_nidos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOipz3QD8Ltf_qFAVuhlA5UVzYqpCMQ7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

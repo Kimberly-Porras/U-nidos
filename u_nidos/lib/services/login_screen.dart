@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:u_nidos/auth/bloc/auth_bloc.dart';
-import '../register/access_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../auth/bloc/auth_bloc.dart';
 import '../auth/bloc/auth_event.dart';
 import '../auth/bloc/auth_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import '../register/access_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,13 +22,21 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, complete ambos campos')),
-      );
+      _showSnackBar('Por favor, complete ambos campos', Colors.orange);
       return;
     }
 
     context.read<AuthBloc>().add(AuthLoginRequested(email, password));
+  }
+
+  void _showSnackBar(String msg, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -36,45 +45,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text(
-                'U-NIDOS',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: colorUni,
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthLoading) {
+            // Podés mostrar un loader si querés, pero solo si se elimina bien
+          } else if (state is AuthFailure) {
+            _showSnackBar(
+              state.message.toLowerCase().contains('firebase_auth')
+                  ? 'Correo o contraseña incorrectos'
+                  : 'Error: ${state.message}',
+              Colors.red,
+            );
+            _emailController.clear();
+            _passwordController.clear();
+          } else if (state is AuthSuccess) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => HomeScreen()),
+            );
+          }
+        },
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text(
+                  'U-NIDOS',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: colorUni,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: colorUni,
-                child: const Icon(Icons.person, size: 40, color: Colors.white),
-              ),
-              const SizedBox(height: 20),
-              BlocListener<AuthBloc, AuthState>(
-                listener: (context, state) {
-                  if (state is AuthLoading) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder:
-                          (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (state is AuthFailure) {
-                    Navigator.pop(context); // Cierra el diálogo si hay error
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(state.message)));
-                  } else if (state is AuthSuccess) {
-                    Navigator.pop(context); // Cierra el diálogo
-                  }
-                },
-                child: Container(
+                const SizedBox(height: 30),
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: colorUni,
+                  child: const Icon(Icons.person, size: 40, color: Colors.white),
+                ),
+                const SizedBox(height: 20),
+                Container(
                   padding: const EdgeInsets.all(20),
                   margin: const EdgeInsets.symmetric(horizontal: 30),
                   decoration: BoxDecoration(
@@ -122,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => Access()),
+                            MaterialPageRoute(builder: (_) => const Access()),
                           );
                         },
                         child: Text.rich(
@@ -140,8 +150,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
