@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'auth/bloc/auth_bloc.dart';
 import 'shared_preferences.dart';
-import 'login_screen.dart';
-import 'services/home_screen.dart'; // <<--- AQUI IMPORTAS HomeScreen
+import 'services/login_screen.dart';
+import 'services/home_screen.dart';
+import 'auth/bloc/auth_bloc.dart';
+import 'auth/bloc/auth_event.dart';
+import 'auth/bloc/auth_state.dart';
+import 'auth/repository/auth_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(const UNidosApp());
@@ -25,6 +31,8 @@ class _UNidosAppState extends State<UNidosApp> {
     'UTN': Color(0xFF003865),
   };
 
+  final AuthRepository authRepository = AuthRepository();
+
   @override
   void initState() {
     super.initState();
@@ -43,24 +51,30 @@ class _UNidosAppState extends State<UNidosApp> {
     Color colorPrimario =
         coloresUniversidades[universidadSeleccionada] ?? Colors.grey;
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'U-NIDOS',
-      theme: ThemeData(
-        primaryColor: colorPrimario,
-        appBarTheme: AppBarTheme(
-          backgroundColor: colorPrimario,
-          foregroundColor: Colors.white,
-        ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: colorPrimario,
-          primary: colorPrimario,
+    return RepositoryProvider.value(
+      value: authRepository,
+      child: BlocProvider(
+        create: (_) => AuthBloc(authRepository),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'U-NIDOS',
+          theme: ThemeData(
+            primaryColor: colorPrimario,
+            appBarTheme: AppBarTheme(
+              backgroundColor: colorPrimario,
+              foregroundColor: Colors.white,
+            ),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: colorPrimario,
+              primary: colorPrimario,
+            ),
+          ),
+          home:
+              universidadSeleccionada == null
+                  ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
+                  : const AuthWrapper(), // Widget que escucha el estado de autenticación
         ),
       ),
-      home: universidadSeleccionada == null
-          ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
-          : LoginScreen(), // ← Aquí sigue mostrando Login primero
-      // : HomeScreen(), // ← si quieres que abra directo HomeScreen en pruebas
     );
   }
 }
@@ -88,12 +102,13 @@ class SeleccionarUniversidad extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
-                items: universidades.map((uni) {
-                  return DropdownMenuItem<String>(
-                    value: uni,
-                    child: Text(uni),
-                  );
-                }).toList(),
+                items:
+                    universidades.map((uni) {
+                      return DropdownMenuItem<String>(
+                        value: uni,
+                        child: Text(uni),
+                      );
+                    }).toList(),
                 onChanged: (valor) async {
                   if (valor != null) {
                     await SharedPrefsService.guardarUniversidad(valor);
@@ -109,6 +124,27 @@ class SeleccionarUniversidad extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is AuthSuccess) {
+          return HomeScreen();
+        } else {
+          return LoginScreen();
+        }
+      },
     );
   }
 }
