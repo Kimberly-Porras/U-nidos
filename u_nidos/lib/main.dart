@@ -9,15 +9,15 @@ import 'auth/bloc/auth_event.dart';
 import 'auth/bloc/auth_state.dart';
 import 'auth/repository/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'services/select_university_screen.dart';
 
-// 👇 NUEVO: clave global para usar con ScaffoldMessenger
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+// 👇 Clave global para usar con ScaffoldMessenger
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const UNidosApp());
 }
 
@@ -64,7 +64,7 @@ class _UNidosAppState extends State<UNidosApp> {
       child: BlocProvider(
         create: (_) => AuthBloc(authRepository),
         child: MaterialApp(
-          scaffoldMessengerKey: scaffoldMessengerKey, // ✅ Clave correcta
+          scaffoldMessengerKey: scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           title: 'U-NIDOS',
           theme: ThemeData(
@@ -78,57 +78,10 @@ class _UNidosAppState extends State<UNidosApp> {
               primary: colorPrimario,
             ),
           ),
-          home: universidadSeleccionada == null
-              ? SeleccionarUniversidad(onSeleccion: cargarUniversidad)
-              : const AuthWrapper(),
-        ),
-      ),
-    );
-  }
-}
-
-class SeleccionarUniversidad extends StatelessWidget {
-  final VoidCallback onSeleccion;
-
-  const SeleccionarUniversidad({required this.onSeleccion, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    List<String> universidades = ['UNA', 'UCR', 'TEC', 'UNED', 'UTN'];
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Selecciona tu universidad')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                '¿De qué universidad eres?',
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                items: universidades.map((uni) {
-                  return DropdownMenuItem<String>(
-                    value: uni,
-                    child: Text(uni),
-                  );
-                }).toList(),
-                onChanged: (valor) async {
-                  if (valor != null) {
-                    await SharedPrefsService.guardarUniversidad(valor);
-                    onSeleccion();
-                  }
-                },
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Universidad',
-                ),
-              ),
-            ],
-          ),
+          home:
+              universidadSeleccionada == null
+                  ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+                  : const AuthWrapper(),
         ),
       ),
     );
