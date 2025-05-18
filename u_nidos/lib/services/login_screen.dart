@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/auth_bloc.dart';
-import '../auth/bloc/auth_event.dart';
-import '../auth/bloc/auth_state.dart';
+import '../auth/bloc/auth/auth_bloc.dart';
+import '../auth/bloc/auth/auth_event.dart';
+import '../auth/bloc/auth/auth_state.dart';
 import '../register/access_screen.dart';
 import 'home_screen.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/auth_bloc.dart';
-import '../auth/bloc/auth_event.dart';
-import '../auth/bloc/auth_state.dart';
+import '../auth/bloc/register/register_bloc.dart';
+import '../auth/bloc/register/register_event.dart';
+import '../auth/bloc/register/register_state.dart';
 import 'profile_screen.dart';
 
 class Access extends StatefulWidget {
@@ -22,21 +22,21 @@ class _AccessState extends State<Access> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Registro - Paso 1')),
-      body: BlocListener<AuthBloc, AuthState>(
+      body: BlocListener<RegisterBloc, RegisterState>(
         listener: (context, state) {
-          if (state is AuthLoading) {
+          if (state is RegisterLoading) {
             showDialog(
               context: context,
               barrierDismissible: false,
               builder: (_) => const Center(child: CircularProgressIndicator()),
             );
-          } else if (state is AuthFailure) {
-            Navigator.pop(context); // Cierra diálogo de carga
+          } else if (state is RegisterError) {
+            Navigator.pop(context); // Cierra el diálogo de carga
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
-          } else if (state is AuthSuccess) {
-            Navigator.pop(context); // Cierra diálogo de carga
+          } else if (state is RegisterAccessCompleted) {
+            Navigator.pop(context); // Cierra el diálogo de carga
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -82,9 +82,8 @@ class _AccessState extends State<Access> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Disparar evento de registro al BLoC
-                      context.read<AuthBloc>().add(
-                        AuthRegisterRequested(
+                      context.read<RegisterBloc>().add(
+                        AccessCompleted(
                           emailCtrl.text.trim(),
                           passwordCtrl.text.trim(),
                         ),

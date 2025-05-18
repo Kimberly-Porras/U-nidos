@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'auth/bloc/auth_bloc.dart';
+import 'auth/bloc/auth/auth_bloc.dart';
+import 'auth/bloc/register/register_bloc.dart'; // ✅ Nuevo Bloc
 import 'shared_preferences.dart';
 import 'services/login_screen.dart';
 import 'services/home_screen.dart';
-import 'auth/bloc/auth_event.dart';
-import 'auth/bloc/auth_state.dart';
+import 'auth/bloc/auth/auth_event.dart';
+import 'auth/bloc/auth/auth_state.dart';
 import 'auth/repository/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'services/select_university_screen.dart';
@@ -61,8 +62,15 @@ class _UNidosAppState extends State<UNidosApp> {
 
     return RepositoryProvider.value(
       value: authRepository,
-      child: BlocProvider(
-        create: (_) => AuthBloc(authRepository),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (_) => AuthBloc(authRepository),
+          ),
+          BlocProvider<RegisterBloc>(
+            create: (_) => RegisterBloc(), // ✅ Se añade aquí
+          ),
+        ],
         child: MaterialApp(
           scaffoldMessengerKey: scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
@@ -78,10 +86,9 @@ class _UNidosAppState extends State<UNidosApp> {
               primary: colorPrimario,
             ),
           ),
-          home:
-              universidadSeleccionada == null
-                  ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
-                  : const AuthWrapper(),
+          home: universidadSeleccionada == null
+              ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+              : const AuthWrapper(),
         ),
       ),
     );

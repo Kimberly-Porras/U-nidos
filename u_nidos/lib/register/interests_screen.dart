@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:u_nidos/services/home_screen.dart';
+import '../auth/bloc/register/register_bloc.dart';
+import '../auth/bloc/register/register_event.dart';
+import '../auth/bloc/register/register_state.dart';
 
 class Interests extends StatefulWidget {
   final String email;
@@ -48,62 +52,81 @@ class _InterestsState extends State<Interests> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Registro - Paso 3')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Selecciona tus intereses:', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 12),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: categories.map((cat) {
-                    return FilterChip(
-                      avatar: Icon(
-                        cat['icon'],
-                        size: 20,
-                        color: selected.contains(cat['label']) ? Colors.white : Colors.black54,
-                      ),
-                      label: Text(cat['label']),
-                      selected: selected.contains(cat['label']),
-                      onSelected: (bool value) {
-                        setState(() {
-                          value
-                              ? selected.add(cat['label'])
-                              : selected.remove(cat['label']);
-                        });
-                      },
-                      selectedColor: Theme.of(context).primaryColor,
-                      checkmarkColor: Colors.white,
-                    );
-                  }).toList(),
+      body: BlocListener<RegisterBloc, RegisterState>(
+        listener: (context, state) {
+          if (state is RegisterLoading) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+            );
+          } else if (state is RegisterError) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is RegisterInterestsCompleted) {
+            Navigator.pop(context);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              (route) => false,
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Selecciona tus intereses:', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: categories.map((cat) {
+                      return FilterChip(
+                        avatar: Icon(
+                          cat['icon'],
+                          size: 20,
+                          color: selected.contains(cat['label']) ? Colors.white : Colors.black54,
+                        ),
+                        label: Text(cat['label']),
+                        selected: selected.contains(cat['label']),
+                        onSelected: (bool value) {
+                          setState(() {
+                            value
+                                ? selected.add(cat['label'])
+                                : selected.remove(cat['label']);
+                          });
+                        },
+                        selectedColor: Theme.of(context).primaryColor,
+                        checkmarkColor: Colors.white,
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: ElevatedButton(
-                onPressed: selected.isEmpty
-                    ? null
-                    : () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const HomeScreen(),
-                          ),
-                          (route) => false,
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () {
+                          context
+                              .read<RegisterBloc>()
+                              .add(InterestsSelected(selected));
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                  ),
+                  child: const Text('Finalizar Registro'),
                 ),
-                child: const Text('Finalizar Registro'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

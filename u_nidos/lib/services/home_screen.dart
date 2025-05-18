@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:u_nidos/services/inicio_page.dart';
+import 'package:u_nidos/services/inicio_page.dart'; // Asegurate de corregir esta
 import 'package:u_nidos/services/chat_page.dart';
 import 'package:u_nidos/services/historial_page.dart';
 import 'package:u_nidos/services/perfil_page.dart';
@@ -9,14 +9,14 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const InicioPage(),
+    const InicioPage(),     // Aquí se cargan publicaciones filtradas por campus
     const ChatPage(),
     const HistorialPage(),
     const PerfilPage(),
@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: _screens[_currentIndex],
 
-      // ✅ Botón flotante SOLO ÍCONO ➕
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
               onPressed: () {
@@ -38,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              child: const Icon(Icons.add), // ✅ Solo ícono
+              child: const Icon(Icons.add),
               backgroundColor: Colors.blueAccent,
             )
           : null,
