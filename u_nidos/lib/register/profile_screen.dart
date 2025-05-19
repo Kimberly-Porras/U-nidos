@@ -27,6 +27,7 @@ class _ProfileState extends State<Profile> {
   final TextEditingController carreraCtrl = TextEditingController();
   final TextEditingController anioIngresoCtrl = TextEditingController();
   final TextEditingController habilidadesCtrl = TextEditingController();
+  final TextEditingController fechaNacimientoCtrl = TextEditingController();
 
   String? universidadSeleccionada;
   List<String> campus = [];
@@ -38,28 +39,85 @@ class _ProfileState extends State<Profile> {
     'UCR': [
       'Sede Rodrigo Facio (San Pedro)',
       'Sede de Occidente (San Ramón)',
+      'Recinto de Grecia (Grecia)',
       'Sede del Atlántico (Turrialba)',
+      'Recinto de Paraíso (Paraíso)',
+      'Recinto de Guápiles (Guápiles)',
+      'Sede de Guanacaste (Liberia)',
+      'Recinto de Santa Cruz (Santa Cruz)',
       'Sede del Caribe (Limón)',
       'Sede del Pacífico (Puntarenas)',
+      'Sede del Sur (Golfito)',
+      'Sede Interuniversitaria (Alajuela)',
     ],
     'UNA': [
       'Campus Omar Dengo (Heredia)',
-      'Sede Brunca (Pérez Zeledón)',
-      'SIUA (Alajuela)',
+      'Campus Benjamín Núñez (Heredia)',
+      'Sede Interuniversitaria (Alajuela)',
+      'Campus Sarapiquí (Sarapiquí)',
+      'Campus Coto (Corredores)',
+      'Campus Pérez Zeledón (Pérez Zeledón)',
+      'Campus Liberia (Liberia)',
+      'Campus Nicoya (Nicoya)',
     ],
     'TEC': [
-      'Campus Central (Cartago)',
-      'Sede San Carlos',
-      'Centro Académico de Limón',
+      'Centro Universitario (Campus Central - Cartago)',
+      'Centro Universitario (Sede San Carlos)',
+      'Centro Universitario (Centro Académico de San José)',
+      'Centro Universitario (Centro Académico de Alajuela)',
+      'Centro Universitario (Centro Académico de Limón)',
+      'Centro Universitario (Centro Académico de Zapote)',
+      'Centro Universitario (Centro de Investigación en Palma Aceitera - Coto)',
     ],
     'UNED': [
-      'Centro Universitario (Liberia)',
+      'Centro Universitario (Acosta)',
+      'Centro Universitario (Alajuela)',
+      'Centro Universitario (Atenas)',
+      'Centro Universitario (Buenos Aires)',
+      'Centro Universitario (Cañas)',
       'Centro Universitario (Cartago)',
+      'Centro Universitario (Ciudad Neily)',
+      'Centro Universitario (Desamparados)',
+      'Centro Universitario (Guápiles)',
+      'Centro Universitario (Heredia)',
+      'Centro Universitario (Jicaral)',
+      'Centro Universitario (La Cruz)',
+      'Centro Universitario (La Reforma)',
+      'Centro Universitario (Liberia)',
+      'Centro Universitario (Limón)',
+      'Centro Universitario (Los Chiles)',
+      'Centro Universitario (Monteverde)',
+      'Centro Universitario (Nicoya)',
+      'Centro Universitario (Orotina)',
+      'Centro Universitario (Osa)',
+      'Centro Universitario (Palmares)',
+      'Centro Universitario (Parrita)',
       'Centro Universitario (Pérez Zeledón)',
+      'Centro Universitario (Puerto Jiménez)',
+      'Centro Universitario (Puntarenas)',
+      'Centro Universitario (Puriscal)',
+      'Centro Universitario (San Carlos)',
+      'Centro Universitario (San José)',
+      'Centro Universitario (San Marcos)',
+      'Centro Universitario (San Vito)',
+      'Centro Universitario (Santa Cruz)',
+      'Centro Universitario (Sarapiquí)',
+      'Centro Universitario (Siquirres)',
+      'Centro Universitario (Talamanca)',
+      'Centro Universitario (Tilarán)',
+      'Centro Universitario (Turrialba)',
+      'Centro Universitario (Upala)',
     ],
+
     'UTN': [
-      'Sede Central (Alajuela)',
-      'Sede Pacífico (Puntarenas)',
+      'Centro Universitario (Sede Central - Alajuela)',
+      'Centro Universitario (Sede de Atenas)',
+      'Centro Universitario (Sede de Guanacaste - Liberia)',
+      'Centro Universitario (Sede de Guanacaste - Cañas)',
+      'Centro Universitario (Sede del Pacífico - Puntarenas)',
+      'Centro Universitario (Sede del Pacífico - El Roble)',
+      'Centro Universitario (Sede de San Carlos)',
+      'Centro Universitario (Centro de Formación Pedagógica y Tecnología Educativa - CFPTE)',
     ],
   };
 
@@ -83,6 +141,7 @@ class _ProfileState extends State<Profile> {
     carreraCtrl.dispose();
     anioIngresoCtrl.dispose();
     habilidadesCtrl.dispose();
+    fechaNacimientoCtrl.dispose();
     super.dispose();
   }
 
@@ -96,6 +155,8 @@ class _ProfileState extends State<Profile> {
     if (picked != null) {
       setState(() {
         fechaNacimiento = picked;
+        fechaNacimientoCtrl.text =
+            '${picked.day}/${picked.month}/${picked.year}';
       });
     }
   }
@@ -114,21 +175,22 @@ class _ProfileState extends State<Profile> {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is RegisterProfileCompleted) {
             Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => Interests(
-                  email: widget.email,
-                  username: widget.username,
-                  password: widget.password,
-                  name: nameCtrl.text,
-                  campus: campusSeleccionado!,
-                ),
+                builder:
+                    (_) => Interests(
+                      email: widget.email,
+                      username: widget.username,
+                      password: widget.password,
+                      name: nameCtrl.text,
+                      campus: campusSeleccionado!,
+                    ),
               ),
             );
           }
@@ -141,7 +203,9 @@ class _ProfileState extends State<Profile> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nombre completo'),
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre completo',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -151,40 +215,44 @@ class _ProfileState extends State<Profile> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: anioIngresoCtrl,
-                  decoration: const InputDecoration(labelText: 'Año de ingreso'),
+                  decoration: const InputDecoration(
+                    labelText: 'Año de ingreso',
+                  ),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: habilidadesCtrl,
                   decoration: const InputDecoration(labelText: 'Habilidades'),
+                  maxLines: null, // ✅ Multilínea
+                  keyboardType: TextInputType.multiline,
                 ),
                 const SizedBox(height: 16),
-                if (campus.isNotEmpty) ...[
+                if (campus.isNotEmpty)
                   DropdownButtonFormField<String>(
                     value: campusSeleccionado,
                     hint: const Text('Seleccione un campus'),
-                    items: campus.map((campus) {
-                      return DropdownMenuItem(
-                        value: campus,
-                        child: Text(campus),
-                      );
-                    }).toList(),
+                    items:
+                        campus.map((campus) {
+                          return DropdownMenuItem(
+                            value: campus,
+                            child: Text(campus),
+                          );
+                        }).toList(),
                     onChanged: (valor) {
                       setState(() {
                         campusSeleccionado = valor;
                       });
                     },
                   ),
-                ],
                 const SizedBox(height: 16),
-                ListTile(
-                  title: Text(
-                    fechaNacimiento == null
-                        ? 'Seleccione su fecha de nacimiento'
-                        : 'Fecha de nacimiento: ${fechaNacimiento!.day}/${fechaNacimiento!.month}/${fechaNacimiento!.year}',
+                TextFormField(
+                  readOnly: true,
+                  controller: fechaNacimientoCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha de nacimiento',
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  trailing: const Icon(Icons.calendar_today),
                   onTap: _seleccionarFechaNacimiento,
                 ),
                 const SizedBox(height: 24),
@@ -192,19 +260,26 @@ class _ProfileState extends State<Profile> {
                   onPressed: () {
                     if (campusSeleccionado == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Por favor seleccione un campus')),
+                        const SnackBar(
+                          content: Text('Por favor seleccione un campus'),
+                        ),
                       );
                       return;
                     }
 
                     if (fechaNacimiento == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Por favor seleccione su fecha de nacimiento')),
+                        const SnackBar(
+                          content: Text(
+                            'Por favor seleccione su fecha de nacimiento',
+                          ),
+                        ),
                       );
                       return;
                     }
 
-                    if (anioIngresoCtrl.text.isEmpty || int.tryParse(anioIngresoCtrl.text) == null) {
+                    if (anioIngresoCtrl.text.isEmpty ||
+                        int.tryParse(anioIngresoCtrl.text) == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Ingrese un año válido')),
                       );

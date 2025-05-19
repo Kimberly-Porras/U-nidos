@@ -81,7 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: colorUni,
-                  child: const Icon(Icons.person, size: 40, color: Colors.white),
+                  child: const Icon(
+                    Icons.person,
+                    size: 40,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Container(
@@ -96,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          hintText: 'Usuario',
+                          hintText: 'Correo electrónico',
                           prefixIcon: const Icon(Icons.person),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -120,13 +124,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () => _login(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorUni,
+                          foregroundColor: Colors.white,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         child: const Text('INICIAR SESIÓN'),
                       ),
+
                       const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {

@@ -62,9 +62,9 @@ class _InterestsState extends State<Interests> {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is RegisterInterestsCompleted) {
             Navigator.pop(context);
             Navigator.pushAndRemoveUntil(
@@ -79,48 +79,79 @@ class _InterestsState extends State<Interests> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Selecciona tus intereses:', style: TextStyle(fontSize: 16)),
+              const Text(
+                'Selecciona tus intereses:',
+                style: TextStyle(fontSize: 16),
+              ),
               const SizedBox(height: 12),
               Expanded(
                 child: SingleChildScrollView(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: categories.map((cat) {
-                      return FilterChip(
-                        avatar: Icon(
-                          cat['icon'],
-                          size: 20,
-                          color: selected.contains(cat['label']) ? Colors.white : Colors.black54,
-                        ),
-                        label: Text(cat['label']),
-                        selected: selected.contains(cat['label']),
-                        onSelected: (bool value) {
-                          setState(() {
-                            value
-                                ? selected.add(cat['label'])
-                                : selected.remove(cat['label']);
-                          });
-                        },
-                        selectedColor: Theme.of(context).primaryColor,
-                        checkmarkColor: Colors.white,
-                      );
-                    }).toList(),
+                    children:
+                        categories.map((cat) {
+                          final isSelected = selected.contains(cat['label']);
+
+                          return ChoiceChip(
+                            label: Text(
+                              cat['label'],
+                              style: TextStyle(
+                                color:
+                                    isSelected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.black,
+                                fontWeight:
+                                    isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                              ),
+                            ),
+                            avatar: Icon(
+                              cat['icon'],
+                              size: 20,
+                              color: colorForIcon(cat['label']),
+                            ),
+                            selected: isSelected,
+                            onSelected: (bool value) {
+                              setState(() {
+                                value
+                                    ? selected.add(cat['label'])
+                                    : selected.remove(cat['label']);
+                              });
+                            },
+                            backgroundColor: Colors.white,
+                            selectedColor: Colors.white,
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color:
+                                    isSelected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey.shade400,
+                                width: 2,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               Center(
                 child: ElevatedButton(
-                  onPressed: selected.isEmpty
-                      ? null
-                      : () {
-                          context
-                              .read<RegisterBloc>()
-                              .add(InterestsSelected(selected));
-                        },
+                  onPressed:
+                      selected.isEmpty
+                          ? null
+                          : () {
+                            context.read<RegisterBloc>().add(
+                              InterestsSelected(selected),
+                            );
+                          },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 14,
+                    ),
                   ),
                   child: const Text('Finalizar Registro'),
                 ),
@@ -130,5 +161,29 @@ class _InterestsState extends State<Interests> {
         ),
       ),
     );
+  }
+
+  Color colorForIcon(String label) {
+    final Map<String, Color> colores = {
+      'Arte': Colors.pink,
+      'Música': Colors.deepPurple,
+      'Deportes': Colors.orange,
+      'Gaming': Colors.green,
+      'Moda': Colors.brown,
+      'Cocina': Colors.red,
+      'Lectura': Colors.indigo,
+      'Ciencia': Colors.blue,
+      'Programación': Colors.cyan,
+      'Cine': Colors.teal,
+      'Viajes': Colors.deepOrange,
+      'Naturaleza': Colors.green.shade800,
+      'Fotografía': Colors.purple,
+      'Animales': Colors.amber,
+      'Salud y bienestar': Colors.lightBlue,
+      'Manualidades': Colors.grey,
+      'Emprendimiento': Colors.blueGrey,
+    };
+
+    return colores[label] ?? Colors.black;
   }
 }
