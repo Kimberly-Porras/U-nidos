@@ -1,29 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 import 'firebase_options.dart';
 import 'auth/bloc/auth/auth_bloc.dart';
-import 'auth/bloc/register/register_bloc.dart'; // ✅ Nuevo Bloc
-import 'shared_preferences.dart';
-import 'services/login_screen.dart';
-import 'services/home_screen.dart';
 import 'auth/bloc/auth/auth_event.dart';
 import 'auth/bloc/auth/auth_state.dart';
+import 'auth/bloc/register/register_bloc.dart';
 import 'auth/repository/auth_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'services/select_university_screen.dart';
 
-// 👇 Clave global para usar con ScaffoldMessenger
+import 'connectivity/bloc/connectivity_bloc.dart';
+import 'connectivity/bloc/connectivity_event.dart';
+import 'connectivity/bloc/connectivity_state.dart';
+import 'connectivity/repository/connectivity_repository.dart';
+
+import 'services/login_screen.dart';
+import 'services/home_screen.dart';
+import 'services/select_university_screen.dart';
+import 'shared_preferences.dart';
+
+// Clave global para mostrar SnackBars
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const UNidosApp());
+
+  final connectivityRepository = ConnectivityRepository();
+
+  runApp(
+    RepositoryProvider.value(
+      value: connectivityRepository,
+      child: UNidosApp(connectivityRepository: connectivityRepository),
+    ),
+  );
 }
 
 class UNidosApp extends StatefulWidget {
-  const UNidosApp({super.key});
+  final ConnectivityRepository connectivityRepository;
+
+  const UNidosApp({super.key, required this.connectivityRepository});
 
   @override
   State<UNidosApp> createState() => _UNidosAppState();
@@ -60,36 +77,50 @@ class _UNidosAppState extends State<UNidosApp> {
     Color colorPrimario =
         coloresUniversidades[universidadSeleccionada] ?? Colors.grey;
 
-    return RepositoryProvider.value(
-      value: authRepository,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthBloc>(
-            create: (_) => AuthBloc(authRepository),
-          ),
-          BlocProvider<RegisterBloc>(
-            create: (_) => RegisterBloc(), // ✅ Se añade aquí
-          ),
-        ],
-        child: MaterialApp(
-          scaffoldMessengerKey: scaffoldMessengerKey,
-          debugShowCheckedModeBanner: false,
-          title: 'U-NIDOS',
-          theme: ThemeData(
-            primaryColor: colorPrimario,
-            appBarTheme: AppBarTheme(
-              backgroundColor: colorPrimario,
-              foregroundColor: Colors.white,
-            ),
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: colorPrimario,
-              primary: colorPrimario,
-            ),
-          ),
-          home: universidadSeleccionada == null
-              ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
-              : const AuthWrapper(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(create: (_) => AuthBloc(authRepository)),
+        BlocProvider<RegisterBloc>(create: (_) => RegisterBloc()),
+        BlocProvider<ConnectivityBloc>(
+          create:
+              (_) =>
+                  ConnectivityBloc(repository: widget.connectivityRepository),
         ),
+      ],
+      child: MaterialApp(
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        debugShowCheckedModeBanner: false,
+        title: 'U-NIDOS',
+        theme: ThemeData(
+          primaryColor: colorPrimario,
+          appBarTheme: AppBarTheme(
+            backgroundColor: colorPrimario,
+            foregroundColor: Colors.white,
+          ),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: colorPrimario,
+            primary: colorPrimario,
+          ),
+        ),
+        builder: (context, child) {
+          return BlocListener<ConnectivityBloc, ConnectivityState>(
+            listener: (context, state) {
+              if (state is ConnectivityOffline) {
+                scaffoldMessengerKey.currentState?.showSnackBar(
+                  const SnackBar(
+                    content: Text('⚠️ Sin conexión a internet'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: child!,
+          );
+        },
+        home:
+            universidadSeleccionada == null
+                ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+                : const AuthWrapper(),
       ),
     );
   }

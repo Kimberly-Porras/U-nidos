@@ -41,6 +41,7 @@ dependencies:
   equatable: ^2.0.5
   flutter_colorpicker: ^1.0.3
   cloud_firestore: ^4.15.9
+  connectivity_plus: ^5.0.2
 
 dev_dependencies:
   flutter_test:
