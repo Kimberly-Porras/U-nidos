@@ -63,7 +63,13 @@ class _HistorialPageState extends State<HistorialPage>
         backgroundColor: colorUniversidad,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Servicios'), Tab(text: 'Aprendí')],
+          labelColor: Colors.white,            // Texto seleccionado blanco
+          unselectedLabelColor: Colors.white,   // Texto no seleccionado blanco
+          indicatorColor: Colors.white,         // Línea activa blanca
+          tabs: const [
+            Tab(text: 'Servicios'),
+            Tab(text: 'Aprendí'),
+          ],
         ),
       ),
       body: Container(

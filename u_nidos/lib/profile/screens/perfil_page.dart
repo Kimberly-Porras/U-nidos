@@ -1,4 +1,5 @@
 // perfil_page.dart editable y funcional
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,7 +33,7 @@ class _PerfilPageState extends State<PerfilPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => FirebaseAuth.instance.signOut(),
+              onPressed: () => exit(0), // Cierra la app
             ),
           ],
         ),
