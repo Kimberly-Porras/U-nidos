@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/auth/auth_bloc.dart';
-import '../auth/bloc/auth/auth_event.dart';
-import '../auth/bloc/auth/auth_state.dart';
-import '../register/access_screen.dart';
-import 'home_screen.dart';
+import '../auth/auth_bloc.dart';
+import '../auth/auth_event.dart';
+import '../auth/auth_state.dart';
+import 'access_screen.dart';
+import '../../../services/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 16,
                           ),
                         ),
-                        child: const Text('INICIAR SESIÓN'),
+                        child: const Text('Iniciar sesión'),
                       ),
 
                       const SizedBox(height: 10),

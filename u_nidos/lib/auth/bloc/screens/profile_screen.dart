@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/register/register_bloc.dart';
-import '../auth/bloc/register/register_event.dart';
-import '../auth/bloc/register/register_state.dart';
+import '../register/register_bloc.dart';
+import '../register/register_event.dart';
+import '../register/register_state.dart';
 import 'interests_screen.dart';
 
 class Profile extends StatefulWidget {

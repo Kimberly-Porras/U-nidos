@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:u_nidos/shared_preferences.dart';
 
 class ChatConversationPage extends StatefulWidget {
   final String nombreContacto;
@@ -18,10 +19,30 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
   final TextEditingController _messageCtrl = TextEditingController();
   final List<Map<String, dynamic>> _messages = [
     {'text': '¡Hola!', 'time': '3:10', 'sent': false},
-    {'text': '¡Hola!', 'time': '3:12', 'sent': true},
-    {'text': '¿Nos vemos en la soda?', 'time': '3:20', 'sent': false},
-    {'text': 'Sí, claro. ¿A qué hora?', 'time': '3:25', 'sent': true},
   ];
+
+  final Map<String, Color> coloresUniversidades = {
+    'UNA': Color(0xFFAD002E),
+    'UCR': Color(0xFF007DC5),
+    'TEC': Color(0xFF0C2340),
+    'UNED': Color(0xFF003366),
+    'UTN': Color(0xFF003865),
+  };
+
+  Color _colorPrincipal = Colors.blueAccent;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarColorUniversidad();
+  }
+
+  Future<void> _cargarColorUniversidad() async {
+    final uni = await SharedPrefsService.obtenerUniversidad();
+    setState(() {
+      _colorPrincipal = coloresUniversidades[uni] ?? Colors.blueAccent;
+    });
+  }
 
   void _sendMessage() {
     final text = _messageCtrl.text.trim();
@@ -46,44 +67,51 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
             CircleAvatar(backgroundImage: NetworkImage(widget.fotoUrl)),
             const SizedBox(width: 10),
             Text(widget.nombreContacto),
-            const Spacer(),
-            const Icon(Icons.search),
           ],
         ),
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: _colorPrincipal,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE0F7FA), Color(0xFF81D4FA)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Colors.white,
         child: Column(
           children: [
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   final msg = _messages[index];
                   return Align(
-                    alignment: msg['sent'] ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment:
+                        msg['sent']
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(msg['text'], style: const TextStyle(fontSize: 16)),
+                          Text(
+                            msg['text'],
+                            style: const TextStyle(fontSize: 16),
+                          ),
                           Text(
                             msg['time'],
-                            style: const TextStyle(fontSize: 10, color: Colors.black54),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
                           ),
                         ],
                       ),
@@ -94,7 +122,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.grey[100],
               child: Row(
                 children: [
                   Expanded(
@@ -107,9 +135,9 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.send),
+                    icon: Icon(Icons.send, color: _colorPrincipal),
                     onPressed: _sendMessage,
-                  )
+                  ),
                 ],
               ),
             ),

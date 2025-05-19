@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/register/register_bloc.dart';
-import '../auth/bloc/register/register_event.dart';
-import '../auth/bloc/register/register_state.dart';
-import '../services/home_screen.dart';// o la pantalla a la que quieras navegar
+import '../register/register_bloc.dart';
+import '../register/register_event.dart';
+import '../register/register_state.dart';
+import '../../../services/home_screen.dart'; // o la pantalla a la que quieras navegar
 
 class ConfirmationScreen extends StatelessWidget {
   final String email;
@@ -36,14 +36,16 @@ class ConfirmationScreen extends StatelessWidget {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context); // cierra diálogo
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is RegisterConfirmationCompleted) {
             Navigator.pop(context); // cierra diálogo
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => HomeScreen()), // cambiar si querés otro destino
+              MaterialPageRoute(
+                builder: (_) => HomeScreen(),
+              ), // cambiar si querés otro destino
             );
           }
         },

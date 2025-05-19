@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../auth/bloc/register/register_bloc.dart';
-import '../auth/bloc/register/register_event.dart';
-import '../auth/bloc/register/register_state.dart';
+import '../register/register_bloc.dart';
+import '../register/register_event.dart';
+import '../register/register_state.dart';
 import 'profile_screen.dart';
 
 class Access extends StatefulWidget {
@@ -32,19 +32,20 @@ class _AccessState extends State<Access> {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context); // Cierra el diálogo de carga
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is RegisterAccessCompleted) {
             Navigator.pop(context); // Cierra el diálogo de carga
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => Profile(
-                  email: emailCtrl.text,
-                  username: usernameCtrl.text,
-                  password: passwordCtrl.text,
-                ),
+                builder:
+                    (_) => Profile(
+                      email: emailCtrl.text,
+                      username: usernameCtrl.text,
+                      password: passwordCtrl.text,
+                    ),
               ),
             );
           }
@@ -59,24 +60,30 @@ class _AccessState extends State<Access> {
                 TextFormField(
                   controller: emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Correo electrónico'),
-                  validator: (value) =>
-                      value!.contains('@') ? null : 'Correo inválido',
+                  decoration: const InputDecoration(
+                    labelText: 'Correo electrónico',
+                  ),
+                  validator:
+                      (value) =>
+                          value!.contains('@') ? null : 'Correo inválido',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: usernameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nombre de usuario'),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Campo obligatorio' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de usuario',
+                  ),
+                  validator:
+                      (value) => value!.isEmpty ? 'Campo obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: passwordCtrl,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: 'Contraseña'),
-                  validator: (value) =>
-                      value!.length >= 6 ? null : 'Mínimo 6 caracteres',
+                  validator:
+                      (value) =>
+                          value!.length >= 6 ? null : 'Mínimo 6 caracteres',
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(

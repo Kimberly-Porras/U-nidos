@@ -1,133 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HistorialPage extends StatelessWidget {
+class HistorialPage extends StatefulWidget {
   const HistorialPage({super.key});
 
-  final List<Map<String, dynamic>> servicios = const [
-    {
-      'titulo': 'Formato de normas APA',
-      'fecha': '02/02/2025',
-      'calificacion': 3,
-    },
-    {
-      'titulo': 'Tutorías de Python',
-      'fecha': '02/07/2024',
-      'calificacion': 2,
-    },
-    {
-      'titulo': 'Cocinar postres sencillos',
-      'fecha': '16/05/2024',
-      'calificacion': 4,
-    },
+  @override
+  State<HistorialPage> createState() => _HistorialPageState();
+}
+
+class _HistorialPageState extends State<HistorialPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  String universidad = 'UCR'; // valor por defecto
+
+  final List<Map<String, dynamic>> servicios = [
+    {'titulo': 'Tutorías de Python', 'fecha': '02/07/2024', 'calificacion': 2},
+    {'titulo': 'Aprendí Canva', 'fecha': '14/04/2024', 'calificacion': 5},
   ];
 
-  final List<Map<String, dynamic>> aprendizajes = const [
-    {
-      'titulo': 'Aprendí Canva',
-      'fecha': '14/04/2024',
-      'calificacion': 5,
-    },
-    {
-      'titulo': 'Curso básico de HTML',
-      'fecha': '12/03/2024',
-      'calificacion': 3,
-    },
-    {
-      'titulo': 'Edición de video con CapCut',
-      'fecha': '25/01/2024',
-      'calificacion': 4,
-    },
+  final List<Map<String, dynamic>> aprendizajes = [
+    {'titulo': 'Diseñé mi logo', 'fecha': '10/04/2024', 'calificacion': 4},
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Historial'),
-          backgroundColor: Colors.blueAccent,
-          bottom: const TabBar(
-            labelColor: Colors.red,
-            unselectedLabelColor: Colors.black87,
-            indicatorColor: Colors.red,
-            tabs: [
-              Tab(text: 'Mis servicios'),
-              Tab(text: 'Mi aprendizaje'),
-            ],
-          ),
-        ),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFE0F7FA), Color(0xFF81D4FA)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: TabBarView(
-            children: [
-              // Tab 1: Mis servicios
-              _buildLista(servicios),
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _cargarUniversidad();
+  }
 
-              // Tab 2: Mi aprendizaje
-              _buildLista(aprendizajes),
-            ],
-          ),
+  Future<void> _cargarUniversidad() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      universidad = prefs.getString('universidad') ?? 'UCR';
+    });
+  }
+
+  Color getColorUniversidad(String universidad) {
+    switch (universidad) {
+      case 'UNA':
+        return const Color(0xFFD32F2F); // Rojo UNA
+      case 'UCR':
+        return const Color(0xFF03A9F4); // Celeste UCR
+      case 'TEC':
+        return const Color(0xFF1565C0); // Azul TEC
+      case 'UNED':
+        return const Color(0xFF0D47A1); // Azul UNED
+      case 'UTN':
+        return const Color(0xFF1976D2); // Azul UTN
+      default:
+        return Colors.blue;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorUniversidad = getColorUniversidad(universidad);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Historial'),
+        backgroundColor: colorUniversidad,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [Tab(text: 'Servicios'), Tab(text: 'Aprendí')],
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
+        child: TabBarView(
+          controller: _tabController,
+          children: [_buildLista(servicios), _buildLista(aprendizajes)],
         ),
       ),
     );
   }
 
-  Widget _buildLista(List<Map<String, dynamic>> lista) {
+  Widget _buildLista(List<Map<String, dynamic>> items) {
     return ListView.builder(
-      itemCount: lista.length,
-      padding: const EdgeInsets.all(12),
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final item = lista[index];
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item['titulo'],
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Text(
-                    item['fecha'],
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Calificación',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: List.generate(5, (i) {
-                  return Icon(
-                    i < item['calificacion'] ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 20,
-                  );
-                }),
-              )
-            ],
+        final item = items[index];
+        return Card(
+          margin: const EdgeInsets.all(8),
+          child: ListTile(
+            title: Text(item['titulo']),
+            subtitle: Text('Fecha: ${item['fecha']}'),
+            trailing: Icon(Icons.star, color: Colors.amber, size: 20),
+            leading: Text('⭐ ${item['calificacion']}'),
           ),
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 }

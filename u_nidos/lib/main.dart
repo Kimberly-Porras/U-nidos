@@ -14,7 +14,7 @@ import 'connectivity/bloc/connectivity_event.dart';
 import 'connectivity/bloc/connectivity_state.dart';
 import 'connectivity/repository/connectivity_repository.dart';
 
-import 'services/login_screen.dart';
+import 'auth/bloc/screens/login_screen.dart';
 import 'services/home_screen.dart';
 import 'services/select_university_screen.dart';
 import 'shared_preferences.dart';
