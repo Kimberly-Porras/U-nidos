@@ -10,8 +10,8 @@ import 'auth/bloc/register/register_bloc.dart';
 import 'auth/repository/auth_repository.dart';
 
 import 'connectivity/bloc/connectivity_bloc.dart';
-import 'connectivity/bloc/connectivity_event.dart';
 import 'connectivity/bloc/connectivity_state.dart';
+import 'connectivity/repository/connectivity_repository.dart';
 import 'connectivity/repository/connectivity_repository.dart';
 
 import 'auth/bloc/screens/login_screen.dart';
@@ -19,7 +19,7 @@ import 'services/home_screen.dart';
 import 'services/select_university_screen.dart';
 import 'shared_preferences.dart';
 
-// Clave global para mostrar SnackBars
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
@@ -82,9 +82,8 @@ class _UNidosAppState extends State<UNidosApp> {
         BlocProvider<AuthBloc>(create: (_) => AuthBloc(authRepository)),
         BlocProvider<RegisterBloc>(create: (_) => RegisterBloc()),
         BlocProvider<ConnectivityBloc>(
-          create:
-              (_) =>
-                  ConnectivityBloc(repository: widget.connectivityRepository),
+          create: (_) =>
+              ConnectivityBloc(repository: widget.connectivityRepository),
         ),
       ],
       child: MaterialApp(
@@ -102,6 +101,13 @@ class _UNidosAppState extends State<UNidosApp> {
             primary: colorPrimario,
           ),
         ),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/select_university': (context) =>
+              SelectUniversityScreen(onSeleccion: cargarUniversidad),
+          // Agrega aquí otras rutas si tienes más pantallas
+        },
         builder: (context, child) {
           return BlocListener<ConnectivityBloc, ConnectivityState>(
             listener: (context, state) {
@@ -117,10 +123,9 @@ class _UNidosAppState extends State<UNidosApp> {
             child: child!,
           );
         },
-        home:
-            universidadSeleccionada == null
-                ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
-                : const AuthWrapper(),
+        home: universidadSeleccionada == null
+            ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+            : const AuthWrapper(),
       ),
     );
   }
@@ -138,9 +143,9 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         } else if (state is AuthSuccess) {
-          return HomeScreen();
+          return const HomeScreen();
         } else {
-          return LoginScreen();
+          return const LoginScreen();
         }
       },
     );
