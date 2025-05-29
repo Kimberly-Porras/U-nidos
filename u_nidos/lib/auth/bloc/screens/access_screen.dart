@@ -18,6 +18,11 @@ class _AccessState extends State<Access> {
   final TextEditingController usernameCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
 
+  bool usernameError = false;
+  bool emailError = false;
+  String? usernameErrorMessage;
+  String? emailErrorMessage;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,21 +36,42 @@ class _AccessState extends State<Access> {
               builder: (_) => const Center(child: CircularProgressIndicator()),
             );
           } else if (state is RegisterError) {
-            Navigator.pop(context); // Cierra el diálogo de carga
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            Navigator.pop(context); // Cierra diálogo de carga
+
+            final msg = state.message.toLowerCase();
+
+            setState(() {
+              usernameError = false;
+              emailError = false;
+              usernameErrorMessage = null;
+              emailErrorMessage = null;
+            });
+
+            if (msg.contains("usuario") && msg.contains("ya está en uso")) {
+              setState(() {
+                usernameError = true;
+                usernameErrorMessage = "Este nombre de usuario ya existe.";
+              });
+            } else if (msg.contains("correo") && msg.contains("ya está en uso")) {
+              setState(() {
+                emailError = true;
+                emailErrorMessage = "Este correo ya está registrado.";
+              });
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
           } else if (state is RegisterAccessCompleted) {
-            Navigator.pop(context); // Cierra el diálogo de carga
+            Navigator.pop(context); // Cierra diálogo
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) => Profile(
-                      email: emailCtrl.text,
-                      username: usernameCtrl.text,
-                      password: passwordCtrl.text,
-                    ),
+                builder: (_) => Profile(
+                  email: emailCtrl.text.trim(),
+                  username: usernameCtrl.text.trim(),
+                  password: passwordCtrl.text.trim(),
+                ),
               ),
             );
           }
@@ -60,41 +86,72 @@ class _AccessState extends State<Access> {
                 TextFormField(
                   controller: emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Correo electrónico',
+                    errorText: emailError ? emailErrorMessage : null,
                   ),
-                  validator:
-                      (value) =>
-                          value!.contains('@') ? null : 'Correo inválido',
+                  validator: (value) =>
+                      value!.contains('@') ? null : 'Correo inválido',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: usernameCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Nombre de usuario',
+                    errorText: usernameError ? usernameErrorMessage : null,
                   ),
-                  validator:
-                      (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                  onChanged: (_) {
+                    if (usernameError) {
+                      setState(() {
+                        usernameError = false;
+                        usernameErrorMessage = null;
+                      });
+                    }
+                  },
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: passwordCtrl,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: 'Contraseña'),
-                  validator:
-                      (value) =>
-                          value!.length >= 6 ? null : 'Mínimo 6 caracteres',
+                  validator: (value) =>
+                      value!.length >= 6 ? null : 'Mínimo 6 caracteres',
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      final email = emailCtrl.text.trim();
+                      final password = passwordCtrl.text.trim();
+                      final username = usernameCtrl.text.trim();
+
+                      if (username.contains(' ')) {
+                        setState(() {
+                          usernameError = true;
+                          usernameErrorMessage =
+                              'El nombre de usuario no debe tener espacios.';
+                        });
+                        return;
+                      }
+
+                      if (username.isEmpty) {
+                        setState(() {
+                          usernameError = true;
+                          usernameErrorMessage =
+                              'El nombre de usuario no puede estar vacío.';
+                        });
+                        return;
+                      }
+
                       context.read<RegisterBloc>().add(
-                        AccessCompleted(
-                          emailCtrl.text.trim(),
-                          passwordCtrl.text.trim(),
-                        ),
-                      );
+                            AccessCompleted(
+                              correo: email,
+                              password: password,
+                              nombre: username,
+                            ),
+                          );
                     }
                   },
                   child: const Text('Siguiente'),

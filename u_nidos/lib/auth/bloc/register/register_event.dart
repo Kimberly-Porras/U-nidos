@@ -7,18 +7,23 @@ abstract class RegisterEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// Paso 1: Datos de acceso (correo y contraseña)
+// Paso 1
 class AccessCompleted extends RegisterEvent {
   final String correo;
   final String password;
+  final String nombre;
 
-  const AccessCompleted(this.correo, this.password);
+  const AccessCompleted({
+    required this.correo,
+    required this.password,
+    required this.nombre,
+  });
 
   @override
-  List<Object> get props => [correo, password];
+  List<Object> get props => [correo, password, nombre];
 }
 
-// Paso 2: Datos del perfil
+// Paso 2
 class ProfileCompleted extends RegisterEvent {
   final String nombre;
   final String universidad;
@@ -50,7 +55,7 @@ class ProfileCompleted extends RegisterEvent {
       ];
 }
 
-// Paso 3: Intereses
+// Paso 3
 class InterestsSelected extends RegisterEvent {
   final List<String> interests;
 
@@ -60,7 +65,7 @@ class InterestsSelected extends RegisterEvent {
   List<Object> get props => [interests];
 }
 
-// Paso 4: Confirmación final (opcional)
+// Paso 4
 class ConfirmationCodeEntered extends RegisterEvent {
   final String code;
 
@@ -68,4 +73,42 @@ class ConfirmationCodeEntered extends RegisterEvent {
 
   @override
   List<Object> get props => [code];
+}
+
+// Paso 5
+class GuardarDatosTemporales extends RegisterEvent {
+  final String email;
+  final String password;
+  final String nombre;
+  final String universidad;
+  final String campus;
+  final String carrera;
+  final int anioIngreso;
+  final String habilidades;
+  final DateTime fechaNacimiento;
+
+  const GuardarDatosTemporales({
+    required this.email,
+    required this.password,
+    required this.nombre,
+    required this.universidad,
+    required this.campus,
+    required this.carrera,
+    required this.anioIngreso,
+    required this.habilidades,
+    required this.fechaNacimiento,
+  });
+
+  @override
+  List<Object> get props => [
+        email,
+        password,
+        nombre,
+        universidad,
+        campus,
+        carrera,
+        anioIngreso,
+        habilidades,
+        fechaNacimiento,
+      ];
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:u_nidos/services/home_screen.dart';
 import '../register/register_bloc.dart';
 import '../register/register_event.dart';
 import '../register/register_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class Interests extends StatefulWidget {
   final String email;
@@ -12,6 +12,11 @@ class Interests extends StatefulWidget {
   final String password;
   final String name;
   final String campus;
+  final String universidad;
+  final String carrera;
+  final int anioIngreso;
+  final String habilidades;
+  final DateTime fechaNacimiento;
 
   const Interests({
     super.key,
@@ -20,6 +25,11 @@ class Interests extends StatefulWidget {
     required this.password,
     required this.name,
     required this.campus,
+    required this.universidad,
+    required this.carrera,
+    required this.anioIngreso,
+    required this.habilidades,
+    required this.fechaNacimiento,
   });
 
   @override
@@ -50,6 +60,24 @@ class _InterestsState extends State<Interests> {
   List<String> selected = [];
 
   @override
+  void initState() {
+    super.initState();
+    context.read<RegisterBloc>().add(
+      GuardarDatosTemporales(
+        email: widget.email,
+        password: widget.password,
+        nombre: widget.username,
+        universidad: widget.universidad,
+        campus: widget.campus,
+        carrera: widget.carrera,
+        anioIngreso: widget.anioIngreso,
+        habilidades: widget.habilidades,
+        fechaNacimiento: widget.fechaNacimiento,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Registro - Paso 3')),
@@ -63,17 +91,17 @@ class _InterestsState extends State<Interests> {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
           } else if (state is RegisterInterestsCompleted) {
             Navigator.pop(context);
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) =>
-                        HomeScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+                builder: (_) => HomeScreen(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                ),
               ),
               (route) => false,
             );
@@ -94,64 +122,58 @@ class _InterestsState extends State<Interests> {
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children:
-                        categories.map((cat) {
-                          final isSelected = selected.contains(cat['label']);
-
-                          return ChoiceChip(
-                            label: Text(
-                              cat['label'],
-                              style: TextStyle(
-                                color:
-                                    isSelected
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.black,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                              ),
-                            ),
-                            avatar: Icon(
-                              cat['icon'],
-                              size: 20,
-                              color: colorForIcon(cat['label']),
-                            ),
-                            selected: isSelected,
-                            onSelected: (bool value) {
-                              setState(() {
-                                value
-                                    ? selected.add(cat['label'])
-                                    : selected.remove(cat['label']);
-                              });
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: Colors.white,
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color:
-                                    isSelected
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey.shade400,
-                                width: 2,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                    children: categories.map((cat) {
+                      final isSelected = selected.contains(cat['label']);
+                      return ChoiceChip(
+                        label: Text(
+                          cat['label'],
+                          style: TextStyle(
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Colors.black,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        avatar: Icon(
+                          cat['icon'],
+                          size: 20,
+                          color: colorForIcon(cat['label']),
+                        ),
+                        selected: isSelected,
+                        onSelected: (bool value) {
+                          setState(() {
+                            value
+                                ? selected.add(cat['label'])
+                                : selected.remove(cat['label']);
+                          });
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: Colors.white,
+                        shape: StadiumBorder(
+                          side: BorderSide(
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey.shade400,
+                            width: 2,
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               Center(
                 child: ElevatedButton(
-                  onPressed:
-                      selected.isEmpty
-                          ? null
-                          : () {
-                            context.read<RegisterBloc>().add(
-                              InterestsSelected(selected),
-                            );
-                          },
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () {
+                          context
+                              .read<RegisterBloc>()
+                              .add(InterestsSelected(selected));
+                        },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 40,
@@ -181,7 +203,7 @@ class _InterestsState extends State<Interests> {
       'Programación': Colors.cyan,
       'Cine': Colors.teal,
       'Viajes': Colors.deepOrange,
-      'Naturaleza': Colors.green.shade800,
+      'Naturaleza': Colors.green,
       'Fotografía': Colors.purple,
       'Animales': Colors.amber,
       'Salud y bienestar': Colors.lightBlue,

@@ -3,14 +3,13 @@ import 'register_event.dart';
 import 'register_state.dart';
 import '../../../services/auth_service.dart';
 
-
-
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   RegisterBloc() : super(RegisterInitial()) {
     on<AccessCompleted>(_onAccessCompleted);
     on<ProfileCompleted>(_onProfileCompleted);
     on<InterestsSelected>(_onInterestsSelected);
     on<ConfirmationCodeEntered>(_onConfirmationCodeEntered);
+    on<GuardarDatosTemporales>(_onGuardarDatosTemporales); // ✅ Añadido
   }
 
   // Variables internas para armar el perfil completo
@@ -27,12 +26,29 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
   final AuthService _authService = AuthService();
 
-  void _onAccessCompleted(AccessCompleted event, Emitter<RegisterState> emit) {
+  /// Paso 1: Validación de nombre de usuario y paso al siguiente formulario
+  Future<void> _onAccessCompleted(
+      AccessCompleted event, Emitter<RegisterState> emit) async {
     _email = event.correo;
     _password = event.password;
-    emit(RegisterAccessCompleted());
+    _nombre = event.nombre;
+
+    emit(RegisterLoading());
+
+    try {
+      final existe = await _authService.usernameExists(_nombre!.trim());
+      if (existe) {
+        emit(RegisterError("El nombre de usuario ya está en uso."));
+        return;
+      }
+
+      emit(RegisterAccessCompleted());
+    } catch (e) {
+      emit(RegisterError("Error al verificar el nombre de usuario: ${e.toString()}"));
+    }
   }
 
+  /// Paso 2: Guardar datos del perfil
   void _onProfileCompleted(ProfileCompleted event, Emitter<RegisterState> emit) {
     _nombre = event.nombre;
     _universidad = event.universidad;
@@ -44,6 +60,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(RegisterProfileCompleted());
   }
 
+  /// Paso 3: Registrar usuario
   Future<void> _onInterestsSelected(
       InterestsSelected event, Emitter<RegisterState> emit) async {
     emit(RegisterLoading());
@@ -65,12 +82,34 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
       emit(RegisterInterestsCompleted());
     } catch (e) {
-      emit(RegisterError('Error al guardar en Firebase: ${e.toString()}'));
+      final mensaje = e.toString();
+
+      if (mensaje.contains("correo electrónico ya está en uso") ||
+          mensaje.contains("ya está en uso")) {
+        emit(RegisterError(mensaje));
+      } else {
+        emit(RegisterError('Error al guardar en Firebase: $mensaje'));
+      }
     }
   }
 
+  /// Paso 4: Confirmación (opcional)
   void _onConfirmationCodeEntered(
       ConfirmationCodeEntered event, Emitter<RegisterState> emit) {
     emit(RegisterConfirmationCompleted());
+  }
+
+  /// Paso 5: Guardar datos temporales antes de registro
+  void _onGuardarDatosTemporales(
+      GuardarDatosTemporales event, Emitter<RegisterState> emit) {
+    _email = event.email;
+    _password = event.password;
+    _nombre = event.nombre;
+    _universidad = event.universidad;
+    _campus = event.campus;
+    _carrera = event.carrera;
+    _anioIngreso = event.anioIngreso;
+    _habilidades = event.habilidades;
+    _fechaNacimiento = event.fechaNacimiento;
   }
 }

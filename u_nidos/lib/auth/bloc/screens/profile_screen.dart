@@ -108,7 +108,6 @@ class _ProfileState extends State<Profile> {
       'Centro Universitario (Turrialba)',
       'Centro Universitario (Upala)',
     ],
-
     'UTN': [
       'Centro Universitario (Sede Central - Alajuela)',
       'Centro Universitario (Sede de Atenas)',
@@ -175,22 +174,26 @@ class _ProfileState extends State<Profile> {
             );
           } else if (state is RegisterError) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
           } else if (state is RegisterProfileCompleted) {
             Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) => Interests(
-                      email: widget.email,
-                      username: widget.username,
-                      password: widget.password,
-                      name: nameCtrl.text,
-                      campus: campusSeleccionado!,
-                    ),
+                builder: (_) => Interests(
+                  email: widget.email,
+                  username: widget.username,
+                  password: widget.password,
+                  name: nameCtrl.text,
+                  campus: campusSeleccionado!,
+                  universidad: universidadSeleccionada ?? '',
+                  carrera: carreraCtrl.text,
+                  anioIngreso: int.parse(anioIngresoCtrl.text),
+                  habilidades: habilidadesCtrl.text,
+                  fechaNacimiento: fechaNacimiento!,
+                ),
               ),
             );
           }
@@ -224,7 +227,7 @@ class _ProfileState extends State<Profile> {
                 TextField(
                   controller: habilidadesCtrl,
                   decoration: const InputDecoration(labelText: 'Habilidades'),
-                  maxLines: null, // ✅ Multilínea
+                  maxLines: null,
                   keyboardType: TextInputType.multiline,
                 ),
                 const SizedBox(height: 16),
@@ -232,13 +235,12 @@ class _ProfileState extends State<Profile> {
                   DropdownButtonFormField<String>(
                     value: campusSeleccionado,
                     hint: const Text('Seleccione un campus'),
-                    items:
-                        campus.map((campus) {
-                          return DropdownMenuItem(
-                            value: campus,
-                            child: Text(campus),
-                          );
-                        }).toList(),
+                    items: campus.map((campus) {
+                      return DropdownMenuItem(
+                        value: campus,
+                        child: Text(campus),
+                      );
+                    }).toList(),
                     onChanged: (valor) {
                       setState(() {
                         campusSeleccionado = valor;
