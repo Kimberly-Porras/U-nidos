@@ -4,6 +4,7 @@ import 'package:u_nidos/services/home_screen.dart';
 import '../register/register_bloc.dart';
 import '../register/register_event.dart';
 import '../register/register_state.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Interests extends StatefulWidget {
   final String email;
@@ -69,7 +70,11 @@ class _InterestsState extends State<Interests> {
             Navigator.pop(context);
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              MaterialPageRoute(
+                builder:
+                    (_) =>
+                        HomeScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+              ),
               (route) => false,
             );
           }

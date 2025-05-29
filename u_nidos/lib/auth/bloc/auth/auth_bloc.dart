@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 import '../../repository/auth_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
@@ -12,9 +13,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         print('Iniciando sesión con: ${event.email}');
         final user = await authRepository.login(event.email, event.password);
+        final uid = FirebaseAuth.instance.currentUser!.uid;
+
         if (user != null) {
           print('Login exitoso para ${user.email}');
-          emit(AuthSuccess());
+          emit(AuthSuccess(uid));
         } else {
           print('Usuario devuelto es nulo');
           emit(AuthFailure('Usuario no encontrado'));
@@ -37,10 +40,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final user = await authRepository.register(event.email, event.password);
         if (user != null) {
           print(' Registro exitoso para ${user.email}');
-          emit(AuthSuccess());
+          final uid = FirebaseAuth.instance.currentUser!.uid;
+          emit(AuthSuccess(uid));
         } else {
           print(' Registro retornó usuario nulo');
-          emit(AuthFailure('Usuario nulo'));
+          final uid = FirebaseAuth.instance.currentUser!.uid;
+          emit(AuthSuccess(uid));
         }
       } catch (e, stack) {
         print(' Error en AuthRegisterRequested');

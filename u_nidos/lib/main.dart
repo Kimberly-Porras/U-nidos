@@ -12,13 +12,16 @@ import 'auth/repository/auth_repository.dart';
 import 'connectivity/bloc/connectivity_bloc.dart';
 import 'connectivity/bloc/connectivity_state.dart';
 import 'connectivity/repository/connectivity_repository.dart';
-import 'connectivity/repository/connectivity_repository.dart';
 
 import 'auth/bloc/screens/login_screen.dart';
 import 'services/home_screen.dart';
 import 'services/select_university_screen.dart';
 import 'shared_preferences.dart';
 
+import 'chat/repository/chat_repository.dart';
+import 'chat/bloc message/message_bloc.dart';
+import 'chat/bloc conversation list/conversation_list_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -28,19 +31,28 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final connectivityRepository = ConnectivityRepository();
+  final chatRepository = ChatRepository();
 
   runApp(
     RepositoryProvider.value(
       value: connectivityRepository,
-      child: UNidosApp(connectivityRepository: connectivityRepository),
+      child: UNidosApp(
+        connectivityRepository: connectivityRepository,
+        chatRepository: chatRepository,
+      ),
     ),
   );
 }
 
 class UNidosApp extends StatefulWidget {
   final ConnectivityRepository connectivityRepository;
+  final ChatRepository chatRepository;
 
-  const UNidosApp({super.key, required this.connectivityRepository});
+  const UNidosApp({
+    super.key,
+    required this.connectivityRepository,
+    required this.chatRepository,
+  });
 
   @override
   State<UNidosApp> createState() => _UNidosAppState();
@@ -82,8 +94,16 @@ class _UNidosAppState extends State<UNidosApp> {
         BlocProvider<AuthBloc>(create: (_) => AuthBloc(authRepository)),
         BlocProvider<RegisterBloc>(create: (_) => RegisterBloc()),
         BlocProvider<ConnectivityBloc>(
-          create: (_) =>
-              ConnectivityBloc(repository: widget.connectivityRepository),
+          create:
+              (_) =>
+                  ConnectivityBloc(repository: widget.connectivityRepository),
+        ),
+        BlocProvider<MessageBloc>(
+          create: (_) => MessageBloc(repository: widget.chatRepository),
+        ),
+        BlocProvider<ConversationListBloc>(
+          create:
+              (_) => ConversationListBloc(repository: widget.chatRepository),
         ),
       ],
       child: MaterialApp(
@@ -103,10 +123,13 @@ class _UNidosAppState extends State<UNidosApp> {
         ),
         routes: {
           '/login': (context) => const LoginScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/select_university': (context) =>
-              SelectUniversityScreen(onSeleccion: cargarUniversidad),
-          // Agrega aquí otras rutas si tienes más pantallas
+          '/home': (context) {
+            final uid = FirebaseAuth.instance.currentUser!.uid;
+            return HomeScreen(uid: uid);
+          },
+          '/select_university':
+              (context) =>
+                  SelectUniversityScreen(onSeleccion: cargarUniversidad),
         },
         builder: (context, child) {
           return BlocListener<ConnectivityBloc, ConnectivityState>(
@@ -123,9 +146,10 @@ class _UNidosAppState extends State<UNidosApp> {
             child: child!,
           );
         },
-        home: universidadSeleccionada == null
-            ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
-            : const AuthWrapper(),
+        home:
+            universidadSeleccionada == null
+                ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+                : const AuthWrapper(),
       ),
     );
   }
@@ -143,7 +167,9 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         } else if (state is AuthSuccess) {
-          return const HomeScreen();
+          final uid = state.uid;
+          print('🧑 UID autenticado desde AuthSuccess: $uid');
+          return HomeScreen(uid: state.uid);
         } else {
           return const LoginScreen();
         }

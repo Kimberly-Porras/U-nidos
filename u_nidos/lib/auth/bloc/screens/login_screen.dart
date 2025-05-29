@@ -5,6 +5,7 @@ import '../auth/auth_event.dart';
 import '../auth/auth_state.dart';
 import 'access_screen.dart';
 import '../../../services/home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,7 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
           } else if (state is AuthSuccess) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => HomeScreen()),
+              MaterialPageRoute(
+                builder:
+                    (_) =>
+                        HomeScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+              ),
             );
           }
         },

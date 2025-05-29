@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:u_nidos/services/inicio_page.dart';
-import 'package:u_nidos/services/chat_page.dart';
+import 'package:u_nidos/chat/screens/chat_page.dart';
 import 'package:u_nidos/services/historial_page.dart';
 import 'package:u_nidos/profile/screens/perfil_page.dart';
 import 'package:u_nidos/publication/screens/publicar_servicio_page.dart';
 import 'package:u_nidos/shared_preferences.dart';
+import 'package:u_nidos/chat/bloc conversation list/conversation_list_bloc.dart';
+import 'package:u_nidos/chat/bloc message/message_bloc.dart';
+import 'package:u_nidos/chat/repository/chat_repository.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String uid;
+  const HomeScreen({super.key, required this.uid}); // ✅ recibe el UID
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,13 +21,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   Color _colorPrincipal = Colors.blueAccent;
-
-  final List<Widget> _screens = [
-    const InicioPage(),
-    const ChatPage(),
-    const HistorialPage(),
-    const PerfilPage(),
-  ];
 
   final Map<String, Color> coloresUniversidades = {
     'UNA': Color(0xFFAD002E),
@@ -47,6 +45,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _screens = [
+      const InicioPage(),
+
+      /// ✅ Chat con BLoC y pasando UID correctamente
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => ConversationListBloc(repository: ChatRepository()),
+          ),
+          BlocProvider(
+            create: (_) => MessageBloc(repository: ChatRepository()),
+          ),
+        ],
+        child: ChatPage(usuarioActualId: widget.uid),
+      ),
+
+      const HistorialPage(),
+      const PerfilPage(),
+    ];
+
     return Scaffold(
       body: _screens[_currentIndex],
 
@@ -60,10 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 backgroundColor: _colorPrincipal,
-                child: const Icon(
-                  Icons.add,
-                  color: Colors.white, // ✅ Ícono blanco
-                ),
+                child: const Icon(Icons.add, color: Colors.white),
               )
               : null,
 
