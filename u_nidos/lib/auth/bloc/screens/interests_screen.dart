@@ -90,12 +90,16 @@ class _InterestsState extends State<Interests> {
               builder: (_) => const Center(child: CircularProgressIndicator()),
             );
           } else if (state is RegisterError) {
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) Navigator.pop(context);
+            print("🛑 Error recibido en Interests: ${state.message}");
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
             );
           } else if (state is RegisterInterestsCompleted) {
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) Navigator.pop(context);
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(

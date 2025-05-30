@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../register/register_bloc.dart';
 import '../register/register_event.dart';
 import '../register/register_state.dart';
-import '../../../services/home_screen.dart'; // o la pantalla a la que quieras navegar
+import '../../../services/home_screen.dart'; // Pantalla de destino
 
 class ConfirmationScreen extends StatelessWidget {
   final String email;
@@ -13,7 +14,8 @@ class ConfirmationScreen extends StatelessWidget {
   final String bio;
   final List<String> interests;
 
-  ConfirmationScreen({
+  const ConfirmationScreen({
+    super.key,
     required this.email,
     required this.username,
     required this.password,
@@ -25,9 +27,9 @@ class ConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('¡Bienvenido!')),
+      appBar: AppBar(title: const Text('¡Bienvenido!')),
       body: BlocListener<RegisterBloc, RegisterState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is RegisterLoading) {
             showDialog(
               context: context,
@@ -35,41 +37,49 @@ class ConfirmationScreen extends StatelessWidget {
               builder: (_) => const Center(child: CircularProgressIndicator()),
             );
           } else if (state is RegisterError) {
-            Navigator.pop(context); // cierra diálogo
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is RegisterConfirmationCompleted) {
-            Navigator.pop(context); // cierra diálogo
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomeScreen(),
-              ), // cambiar si querés otro destino
+            Navigator.pop(context); // Cierra diálogo de carga
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
             );
+          } else if (state is RegisterConfirmationCompleted) {
+            Navigator.pop(context); // Cierra diálogo de carga
+            final uid = FirebaseAuth.instance.currentUser?.uid;
+
+            if (uid != null) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HomeScreen(uid: uid),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No se pudo obtener el UID.')),
+              );
+            }
           }
         },
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   '¡Gracias por registrarte, $name!',
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text('Tus intereses son: ${interests.join(", ")}'),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () {
                     // Simula confirmar el paso final
                     context.read<RegisterBloc>().add(
-                      ConfirmationCodeEntered("mock-code"),
-                    );
+                          ConfirmationCodeEntered("mock-code"),
+                        );
                   },
-                  child: Text('Comenzar'),
+                  child: const Text('Comenzar'),
                 ),
               ],
             ),

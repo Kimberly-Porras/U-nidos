@@ -15,6 +15,17 @@ class AuthService {
     return query.docs.isNotEmpty;
   }
 
+  /// 🔍 Verifica si el correo ya fue registrado (sin lanzar excepción)
+  Future<bool> emailExists(String email) async {
+    try {
+      final methods = await _auth.fetchSignInMethodsForEmail(email);
+      return methods.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// ✅ Registra un nuevo usuario en Firebase Auth y lo guarda en Firestore
   Future<void> registrarUsuario({
     required String email,
     required String password,
@@ -54,18 +65,25 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         throw Exception("El correo electrónico ya está en uso.");
+      } else if (e.code == 'invalid-email') {
+        throw Exception("El correo electrónico no es válido.");
+      } else if (e.code == 'weak-password') {
+        throw Exception("La contraseña es muy débil.");
       } else {
         throw Exception("Error en el registro: ${e.message}");
       }
     }
   }
 
+  /// 🔐 Obtiene el usuario actualmente autenticado
   User? get usuarioActual => _auth.currentUser;
 
+  /// 🔓 Cierra sesión del usuario actual
   Future<void> logout() async {
     await _auth.signOut();
   }
 
+  /// 🔐 Inicia sesión con correo y contraseña
   Future<void> login(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }

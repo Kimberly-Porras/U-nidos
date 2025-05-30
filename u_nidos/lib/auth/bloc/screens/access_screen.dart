@@ -17,6 +17,7 @@ class _AccessState extends State<Access> {
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController usernameCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
+  final TextEditingController confirmPasswordCtrl = TextEditingController();
 
   bool usernameError = false;
   bool emailError = false;
@@ -36,9 +37,10 @@ class _AccessState extends State<Access> {
               builder: (_) => const Center(child: CircularProgressIndicator()),
             );
           } else if (state is RegisterError) {
-            Navigator.pop(context); // Cierra diálogo de carga
+            if (Navigator.canPop(context)) Navigator.pop(context);
 
             final msg = state.message.toLowerCase();
+            print("🛑 Error detectado desde RegisterBloc: $msg");
 
             setState(() {
               usernameError = false;
@@ -52,7 +54,10 @@ class _AccessState extends State<Access> {
                 usernameError = true;
                 usernameErrorMessage = "Este nombre de usuario ya existe.";
               });
-            } else if (msg.contains("correo") && msg.contains("ya está en uso")) {
+            } else if (msg.contains("correo") &&
+                (msg.contains("ya está en uso") ||
+                 msg.contains("ya fue registrado") ||
+                 msg.contains("ya está registrado"))) {
               setState(() {
                 emailError = true;
                 emailErrorMessage = "Este correo ya está registrado.";
@@ -63,7 +68,7 @@ class _AccessState extends State<Access> {
               );
             }
           } else if (state is RegisterAccessCompleted) {
-            Navigator.pop(context); // Cierra diálogo
+            if (Navigator.canPop(context)) Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -118,6 +123,14 @@ class _AccessState extends State<Access> {
                   decoration: const InputDecoration(labelText: 'Contraseña'),
                   validator: (value) =>
                       value!.length >= 6 ? null : 'Mínimo 6 caracteres',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: confirmPasswordCtrl,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Confirmar contraseña'),
+                  validator: (value) =>
+                      value == passwordCtrl.text ? null : 'Las contraseñas no coinciden',
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(

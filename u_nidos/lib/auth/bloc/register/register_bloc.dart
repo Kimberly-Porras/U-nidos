@@ -26,7 +26,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
   final AuthService _authService = AuthService();
 
-  /// Paso 1: Validación de nombre de usuario y paso al siguiente formulario
+  /// Paso 1: Validación del nombre de usuario (el correo se validará después)
   Future<void> _onAccessCompleted(
       AccessCompleted event, Emitter<RegisterState> emit) async {
     _email = event.correo;
@@ -36,15 +36,15 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(RegisterLoading());
 
     try {
-      final existe = await _authService.usernameExists(_nombre!.trim());
-      if (existe) {
+      final usernameExiste = await _authService.usernameExists(_nombre!.trim());
+      if (usernameExiste) {
         emit(RegisterError("El nombre de usuario ya está en uso."));
         return;
       }
 
       emit(RegisterAccessCompleted());
     } catch (e) {
-      emit(RegisterError("Error al verificar el nombre de usuario: ${e.toString()}"));
+      emit(RegisterError("Error en la validación: ${e.toString()}"));
     }
   }
 
@@ -60,7 +60,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(RegisterProfileCompleted());
   }
 
-  /// Paso 3: Registrar usuario
+  /// Paso 3: Intentar registrar al usuario (Firebase valida el correo)
   Future<void> _onInterestsSelected(
       InterestsSelected event, Emitter<RegisterState> emit) async {
     emit(RegisterLoading());
