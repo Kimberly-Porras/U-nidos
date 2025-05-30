@@ -226,9 +226,32 @@ class _ProfileState extends State<Profile> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: habilidadesCtrl,
-                  decoration: const InputDecoration(labelText: 'Habilidades'),
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    labelText: 'Habilidades',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.info_outline),
+                      tooltip: '¿Qué son habilidades?',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Información'),
+                            content: const Text(
+                              'Habilidades hace referencia a en qué se destaca usted como persona.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Entendido'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (campus.isNotEmpty)

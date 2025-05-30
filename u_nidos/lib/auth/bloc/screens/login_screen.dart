@@ -5,6 +5,7 @@ import '../auth/auth_event.dart';
 import '../auth/auth_state.dart';
 import 'access_screen.dart';
 import '../../../services/home_screen.dart';
+import 'forgot_password_screen.dart'; // ✅ NUEVA PANTALLA IMPORTADA
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -48,9 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.grey[300],
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthLoading) {
-            // Podés mostrar un loader si querés, pero solo si se elimina bien
-          } else if (state is AuthFailure) {
+          if (state is AuthFailure) {
             _showSnackBar(
               state.message.toLowerCase().contains('firebase_auth')
                   ? 'Correo o contraseña incorrectos'
@@ -63,9 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) =>
-                        HomeScreen(uid: FirebaseAuth.instance.currentUser!.uid),
+                builder: (_) => HomeScreen(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                ),
               ),
             );
           }
@@ -124,7 +123,25 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(decoration: TextDecoration.underline),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () => _login(context),
                         style: ElevatedButton.styleFrom(
@@ -141,7 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: const Text('Iniciar sesión'),
                       ),
-
                       const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
