@@ -8,7 +8,7 @@ import 'package:u_nidos/shared_preferences.dart';
 
 class ChatConversationPage extends StatefulWidget {
   final String nombreContacto;
-  final String fotoUrl;
+  final String fotoUrl; // no se utiliza, pero mantenido por compatibilidad
   final String contactoId;
   final String usuarioActualId;
 
@@ -79,9 +79,18 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
         backgroundColor: _colorPrincipal,
         title: Row(
           children: [
-            const CircleAvatar(backgroundColor: Colors.white),
+            const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, color: Colors.grey),
+            ),
             const SizedBox(width: 10),
-            Text(widget.nombreContacto),
+            Expanded(
+              child: Text(
+                widget.nombreContacto,
+                style: const TextStyle(fontSize: 18),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

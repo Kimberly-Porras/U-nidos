@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
 import 'auth/bloc/auth/auth_bloc.dart';
@@ -21,7 +22,9 @@ import 'shared_preferences.dart';
 import 'chat/repository/chat_repository.dart';
 import 'chat/bloc message/message_bloc.dart';
 import 'chat/bloc conversation list/conversation_list_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
+import 'package:u_nidos/list_publication/repository/publications_repository.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -104,6 +107,9 @@ class _UNidosAppState extends State<UNidosApp> {
         BlocProvider<ConversationListBloc>(
           create:
               (_) => ConversationListBloc(repository: widget.chatRepository),
+        ),
+        BlocProvider<PublicacionBloc>(
+          create: (_) => PublicacionBloc(PublicacionRepository()),
         ),
       ],
       child: MaterialApp(

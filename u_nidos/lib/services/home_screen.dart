@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:u_nidos/services/inicio_page.dart';
+import 'package:u_nidos/list_publication/screen/publications_page.dart';
 import 'package:u_nidos/chat/screens/chat_page.dart';
 import 'package:u_nidos/services/historial_page.dart';
 import 'package:u_nidos/profile/screens/perfil_page.dart';
@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
-      const InicioPage(),
+      const PublicationsPage(),
 
       /// ✅ Chat con BLoC y pasando UID correctamente
       MultiBlocProvider(

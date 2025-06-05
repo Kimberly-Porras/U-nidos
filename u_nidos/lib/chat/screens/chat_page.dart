@@ -23,8 +23,6 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    print('✅ Enviando evento para cargar conversaciones...');
-    print('🔍 UID actual desde widget: ${widget.usuarioActualId}');
     context.read<ConversationListBloc>().add(
       LoadConversations(widget.usuarioActualId),
     );
@@ -86,14 +84,30 @@ class _ChatPageState extends State<ChatPage> {
                     }
 
                     final contacto = snapshot.data!;
-                    final nombre = contacto['nombre'];
+                    final nombre = contacto['nombre'] ?? 'Sin nombre';
+                    final lastMessage = data['lastMessage'] ?? '';
+                    final timestamp = data['timestamp'] as Timestamp?;
+                    final hora =
+                        timestamp != null
+                            ? TimeOfDay.fromDateTime(
+                              timestamp.toDate(),
+                            ).format(context)
+                            : '';
 
                     return ListTile(
                       leading: const CircleAvatar(
-                        child: Icon(Icons.person), // ✅ Ícono genérico
+                        child: Icon(Icons.person, color: Colors.white),
+                        backgroundColor: Colors.grey,
                       ),
                       title: Text(nombre),
-                      subtitle: Text(data['lastMessage'] ?? ''),
+                      subtitle: Text(lastMessage),
+                      trailing: Text(
+                        hora,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -101,7 +115,7 @@ class _ChatPageState extends State<ChatPage> {
                             builder:
                                 (_) => ChatConversationPage(
                                   nombreContacto: nombre,
-                                  fotoUrl: '', // dejamos vacío
+                                  fotoUrl: '', // vacío porque no se usa
                                   contactoId: contactoId,
                                   usuarioActualId: widget.usuarioActualId,
                                 ),

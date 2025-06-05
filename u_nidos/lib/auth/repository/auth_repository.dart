@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../shared_preferences.dart'; // Asegúrate de importar esto
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<User?> register(String email, String password) async {
     try {
@@ -11,7 +14,6 @@ class AuthRepository {
       );
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      // Manejo específico de errores al registrar
       if (e.code == 'email-already-in-use') {
         throw Exception('firebase_auth: Este correo ya está en uso');
       } else if (e.code == 'invalid-email') {
@@ -32,9 +34,29 @@ class AuthRepository {
         email: email,
         password: password,
       );
-      return userCredential.user;
+      final user = userCredential.user;
+
+      // 🔥 Nuevo bloque para guardar campus y universidad
+      if (user != null) {
+        final doc = await _firestore.collection('usuarios').doc(user.uid).get();
+        final data = doc.data();
+        if (data != null) {
+          final campus = data['campus'];
+          final universidad = data['universidad'];
+
+          if (campus != null) {
+            await SharedPrefsService.guardarCampus(campus);
+            print('✅ Campus guardado en SharedPrefs: $campus');
+          }
+          if (universidad != null) {
+            await SharedPrefsService.guardarUniversidad(universidad);
+            print('✅ Universidad guardada en SharedPrefs: $universidad');
+          }
+        }
+      }
+
+      return user;
     } on FirebaseAuthException catch (e) {
-      // Manejo específico de errores al iniciar sesión
       if (e.code == 'user-not-found') {
         throw Exception('firebase_auth: Usuario no registrado');
       } else if (e.code == 'wrong-password') {
