@@ -5,32 +5,33 @@ import 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc()
-    : super(
-        ProfileState(
-          nombre: '',
-          carrera: '',
-          campus: '',
-          email: '',
-          habilidades: '',
-          anioIngreso: 0,
-          fechaNacimiento: null,
-          cargando: false,
-        ),
-      ) {
+      : super(
+          ProfileState(
+            uid: '',
+            nombre: '',
+            carrera: '',
+            campus: '',
+            email: '',
+            habilidades: '',
+            anioIngreso: 0,
+            fechaNacimiento: null,
+            cargando: false,
+          ),
+        ) {
     on<LoadUserProfile>((event, emit) async {
       emit(state.copyWith(cargando: true));
 
       try {
-        final doc =
-            await FirebaseFirestore.instance
-                .collection('usuarios')
-                .doc(event.uid)
-                .get();
+        final doc = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(event.uid)
+            .get();
 
         final data = doc.data() ?? {};
 
         emit(
           state.copyWith(
+            uid: event.uid,
             nombre: (data['nombre'] ?? '').toString().trim(),
             carrera: (data['carrera'] ?? '').toString().trim(),
             campus: (data['campus'] ?? '').toString().trim(),
@@ -59,6 +60,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
         emit(
           state.copyWith(
+            uid: event.usuario.uid,
             nombre: event.usuario.nombre,
             carrera: event.usuario.carrera,
             campus: event.usuario.campus,
@@ -66,6 +68,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             habilidades: event.usuario.habilidades,
             anioIngreso: event.usuario.anioIngreso,
             fechaNacimiento: event.usuario.fechaNacimiento,
+            intereses: event.usuario.intereses,
             cargando: false,
           ),
         );

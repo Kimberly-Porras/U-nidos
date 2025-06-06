@@ -1,45 +1,49 @@
 class ProfileState {
+  final String uid;
   final String nombre;
   final String carrera;
   final String campus;
   final String email;
   final String habilidades;
-  final DateTime? fechaNacimiento;
   final int anioIngreso;
+  final DateTime? fechaNacimiento;
   final List<String> intereses;
   final bool cargando;
 
-  const ProfileState({
-    this.nombre = '',
-    this.carrera = '',
-    this.campus = '',
-    this.email = '',
-    this.habilidades = '',
-    this.fechaNacimiento,
-    this.anioIngreso = 0,
+  ProfileState({
+    required this.uid,
+    required this.nombre,
+    required this.carrera,
+    required this.campus,
+    required this.email,
+    required this.habilidades,
+    required this.anioIngreso,
+    required this.fechaNacimiento,
     this.intereses = const [],
-    this.cargando = false,
+    required this.cargando,
   });
 
   ProfileState copyWith({
+    String? uid,
     String? nombre,
     String? carrera,
     String? campus,
     String? email,
     String? habilidades,
-    DateTime? fechaNacimiento,
     int? anioIngreso,
+    DateTime? fechaNacimiento,
     List<String>? intereses,
     bool? cargando,
   }) {
     return ProfileState(
+      uid: uid ?? this.uid,
       nombre: nombre ?? this.nombre,
       carrera: carrera ?? this.carrera,
       campus: campus ?? this.campus,
       email: email ?? this.email,
       habilidades: habilidades ?? this.habilidades,
-      fechaNacimiento: fechaNacimiento ?? this.fechaNacimiento,
       anioIngreso: anioIngreso ?? this.anioIngreso,
+      fechaNacimiento: fechaNacimiento ?? this.fechaNacimiento,
       intereses: intereses ?? this.intereses,
       cargando: cargando ?? this.cargando,
     );

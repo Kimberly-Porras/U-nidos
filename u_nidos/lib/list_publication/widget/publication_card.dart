@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ServiceCard extends StatelessWidget {
+class ServiceCard extends StatefulWidget {
   final String name;
   final String description;
   final int fondo;
@@ -19,8 +21,60 @@ class ServiceCard extends StatelessWidget {
   });
 
   @override
+  State<ServiceCard> createState() => _ServiceCardState();
+}
+
+class _ServiceCardState extends State<ServiceCard> {
+  bool aprendido = false;
+
+  @override
+  void initState() {
+    super.initState();
+    verificarSiYaAprendio();
+  }
+
+  Future<void> verificarSiYaAprendio() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final snap = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(uid)
+        .collection('aprendi')
+        .where('nombre', isEqualTo: widget.name)
+        .limit(1)
+        .get();
+
+    if (snap.docs.isNotEmpty) {
+      setState(() => aprendido = true);
+    }
+  }
+
+  Future<void> marcarComoAprendido() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || aprendido) return;
+
+    await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(uid)
+        .collection('aprendi')
+        .add({
+      'nombre': widget.name,
+      'descripcion': widget.description,
+      'fecha': Timestamp.now(),
+      'calificacion': 5,
+    });
+
+    setState(() => aprendido = true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✔ Agregado a la sección "Aprendí"')),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final color = Color(fondo).withOpacity(1.0);
+    final color = Color(widget.fondo).withOpacity(1.0);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
@@ -29,30 +83,39 @@ class ServiceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nombre y menú
           ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
             title: Text(
-              name,
+              widget.name,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
-            trailing: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_horiz),
-              onSelected: (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$value servicio de $name')),
-                );
-              },
-              itemBuilder:
-                  (context) => const [
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.check_circle,
+                    color: aprendido ? Colors.green : Colors.grey,
+                  ),
+                  tooltip: 'Marcar como aprendido',
+                  onPressed: marcarComoAprendido,
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_horiz),
+                  onSelected: (value) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$value servicio de ${widget.name}')),
+                    );
+                  },
+                  itemBuilder: (context) => const [
                     PopupMenuItem(value: 'Editar', child: Text('Editar')),
                     PopupMenuItem(value: 'Eliminar', child: Text('Eliminar')),
                     PopupMenuItem(value: 'Reportar', child: Text('Reportar')),
                   ],
+                ),
+              ],
             ),
           ),
-
-          // Descripción con fondo
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -61,7 +124,7 @@ class ServiceCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(bottom: Radius.zero),
             ),
             child: Text(
-              description,
+              widget.description,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
@@ -69,31 +132,14 @@ class ServiceCard extends StatelessWidget {
               ),
             ),
           ),
-
-          // Botones
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _botonAccion(
-                  Icons.remove_red_eye,
-                  'Perfil',
-                  Colors.blueAccent,
-                  onPerfil,
-                ),
-                _botonAccion(
-                  Icons.chat_bubble_outline,
-                  'Chat',
-                  Colors.green,
-                  onChat,
-                ),
-                _botonAccion(
-                  Icons.share,
-                  'Compartir',
-                  Colors.deepPurple,
-                  onCompartir,
-                ),
+                _botonAccion(Icons.remove_red_eye, 'Perfil', Colors.blueAccent, widget.onPerfil),
+                _botonAccion(Icons.chat_bubble_outline, 'Chat', Colors.green, widget.onChat),
+                _botonAccion(Icons.share, 'Compartir', Colors.deepPurple, widget.onCompartir),
               ],
             ),
           ),
