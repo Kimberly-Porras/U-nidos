@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
 import 'package:u_nidos/list_publication/bloc/publications_state.dart';
 import 'package:u_nidos/list_publication/bloc/publications_event.dart';
 import 'package:u_nidos/list_publication/repository/publications_repository.dart';
 import 'package:u_nidos/list_publication/widget/publication_card.dart';
 import 'package:u_nidos/shared_preferences.dart';
+import 'package:u_nidos/chat/screens/chat_conversation_page.dart';
+import 'package:u_nidos/auth/bloc/screens/public_profile_page.dart';
 
 class PublicationsPage extends StatefulWidget {
   const PublicationsPage({super.key});
@@ -75,16 +79,11 @@ class _PublicationsPageState extends State<PublicationsPage> {
                 if (state is PublicacionCargando) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is PublicacionCargada) {
-                  final publicaciones =
-                      state.publicaciones.where((pub) {
-                        return pub.descripcion.toLowerCase().contains(
+                  final publicaciones = state.publicaciones.where((pub) {
+                    return pub.descripcion.toLowerCase().contains(
                           _filtro.toLowerCase(),
                         );
-                      }).toList();
-
-                  print(
-                    '📊 Publicaciones después del filtro: ${publicaciones.length}',
-                  );
+                  }).toList();
 
                   if (publicaciones.isEmpty) {
                     return const Center(
@@ -98,18 +97,54 @@ class _PublicationsPageState extends State<PublicationsPage> {
                     itemBuilder: (context, index) {
                       final p = publicaciones[index];
 
-                      // Validación de fondo
                       final fondoSeguro =
                           (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
-                      print('🎨 Fondo: ${p.fondo}, nombre: ${p.nombre}');
 
                       return ServiceCard(
                         name: p.nombre,
                         description: p.descripcion,
                         fondo: fondoSeguro,
-                        onPerfil: () {}, // TODO: Acción para ver perfil
-                        onChat: () {}, // TODO: Acción para iniciar chat
-                        onCompartir: () {}, // TODO: Acción para compartir
+                        onPerfil: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PublicProfilePage(uid: p.uid),
+                            ),
+                          );
+                        },
+                        onChat: () {
+                          final uidActual =
+                              FirebaseAuth.instance.currentUser!.uid;
+                          final uidDestino = p.uid;
+
+                          if (uidActual == uidDestino) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('No puedes chatear contigo mismo'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatConversationPage(
+                                nombreContacto: p.nombre,
+                                fotoUrl: '',
+                                contactoId: uidDestino,
+                                usuarioActualId: uidActual,
+                              ),
+                            ),
+                          );
+                        },
+                        onCompartir: () {
+                          Share.share(
+                            'Servicio en U-NIDOS:\n\n'
+                            '${p.nombre} ofrece: ${p.descripcion}',
+                          );
+                        },
                       );
                     },
                   );
