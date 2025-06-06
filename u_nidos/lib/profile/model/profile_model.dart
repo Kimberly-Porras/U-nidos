@@ -8,6 +8,8 @@ class UsuarioModel {
   final String email;
   final String habilidades;
   final DateTime? fechaNacimiento;
+  final int anioIngreso;
+  final List<String> intereses;
 
   UsuarioModel({
     required this.uid,
@@ -16,21 +18,25 @@ class UsuarioModel {
     required this.campus,
     required this.email,
     required this.habilidades,
-    this.fechaNacimiento,
+    required this.fechaNacimiento,
+    required this.anioIngreso,
+    required this.intereses,
   });
 
   factory UsuarioModel.fromMap(Map<String, dynamic> map, String uid) {
     return UsuarioModel(
       uid: uid,
-      nombre: (map['nombre'] ?? '').toString().trim(),
-      carrera: (map['carrera'] ?? '').toString().trim(),
-      campus: (map['campus'] ?? '').toString().trim(),
-      email: (map['email'] ?? '').toString().trim(),
-      habilidades: (map['habilidades'] ?? '').toString().trim(),
+      nombre: (map['nombre'] ?? '').toString(),
+      carrera: (map['carrera'] ?? '').toString(),
+      campus: (map['campus'] ?? '').toString(),
+      email: (map['email'] ?? '').toString(),
+      habilidades: (map['habilidades'] ?? '').toString(),
       fechaNacimiento:
           map['fechaNacimiento'] != null
               ? (map['fechaNacimiento'] as Timestamp).toDate()
               : null,
+      anioIngreso: map['anioIngreso'] ?? 0,
+      intereses: List<String>.from(map['intereses'] ?? []),
     );
   }
 
@@ -42,6 +48,8 @@ class UsuarioModel {
       'email': email,
       'habilidades': habilidades,
       'fechaNacimiento': fechaNacimiento,
+      'anioIngreso': anioIngreso,
+      'intereses': intereses,
     };
   }
 }

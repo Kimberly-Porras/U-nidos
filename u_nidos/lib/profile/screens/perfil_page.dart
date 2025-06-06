@@ -1,8 +1,8 @@
-// perfil_page.dart editable y funcional
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:u_nidos/profile/bloc/profile_bloc.dart';
 import 'package:u_nidos/profile/bloc/profile_event.dart';
 import 'package:u_nidos/profile/bloc/profile_state.dart';
@@ -20,6 +20,19 @@ class _PerfilPageState extends State<PerfilPage> {
   final TextEditingController carreraCtrl = TextEditingController();
   final TextEditingController campusCtrl = TextEditingController();
   final TextEditingController habilidadesCtrl = TextEditingController();
+  final TextEditingController anioIngresoCtrl = TextEditingController();
+  final TextEditingController fechaNacimientoCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
+
+  DateTime? fechaNacimiento;
+
+  void _cerrarSesion(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushNamedAndRemoveUntil('/access', (route) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +46,7 @@ class _PerfilPageState extends State<PerfilPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => exit(0), // Cierra la app
+              onPressed: () => _cerrarSesion(context),
             ),
           ],
         ),
@@ -47,17 +60,18 @@ class _PerfilPageState extends State<PerfilPage> {
             carreraCtrl.text = state.carrera;
             campusCtrl.text = state.campus;
             habilidadesCtrl.text = state.habilidades;
+            anioIngresoCtrl.text = state.anioIngreso.toString();
+            fechaNacimiento = state.fechaNacimiento;
+            emailCtrl.text = state.email;
+            fechaNacimientoCtrl.text =
+                fechaNacimiento != null
+                    ? DateFormat('dd/MM/yyyy').format(fechaNacimiento!)
+                    : '';
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Color(0xFFE0F7FA),
-                    child: Icon(Icons.camera_alt, size: 30),
-                  ),
-                  const SizedBox(height: 20),
                   TextField(
                     controller: nombreCtrl,
                     decoration: const InputDecoration(labelText: 'Nombre'),
@@ -74,18 +88,51 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: anioIngresoCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Año de ingreso',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
                     controller: habilidadesCtrl,
                     decoration: const InputDecoration(labelText: 'Habilidades'),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    enabled: false,
-                    decoration: InputDecoration(
-                      labelText: 'Correo',
-                      hintText: state.email,
+                  GestureDetector(
+                    onTap: () async {
+                      final DateTime? selected = await showDatePicker(
+                        context: context,
+                        initialDate: fechaNacimiento ?? DateTime(2000),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (selected != null) {
+                        setState(() {
+                          fechaNacimiento = selected;
+                          fechaNacimientoCtrl.text = DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(selected);
+                        });
+                      }
+                    },
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: fechaNacimientoCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha de nacimiento',
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: emailCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(labelText: 'Correo'),
+                  ),
+                  const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
                       final nuevoUsuario = UsuarioModel(
@@ -95,7 +142,10 @@ class _PerfilPageState extends State<PerfilPage> {
                         campus: campusCtrl.text.trim(),
                         email: state.email,
                         habilidades: habilidadesCtrl.text.trim(),
-                        fechaNacimiento: state.fechaNacimiento,
+                        fechaNacimiento: fechaNacimiento,
+                        anioIngreso:
+                            int.tryParse(anioIngresoCtrl.text.trim()) ?? 0,
+                        intereses: state.intereses,
                       );
 
                       context.read<ProfileBloc>().add(

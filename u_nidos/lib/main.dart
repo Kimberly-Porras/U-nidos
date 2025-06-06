@@ -25,6 +25,7 @@ import 'chat/bloc conversation list/conversation_list_bloc.dart';
 
 import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
 import 'package:u_nidos/list_publication/repository/publications_repository.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -32,6 +33,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('es_CR', null);
 
   final connectivityRepository = ConnectivityRepository();
   final chatRepository = ChatRepository();
