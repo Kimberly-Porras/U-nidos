@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ← agregado para cerrar la app correctamente
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -26,10 +27,9 @@ class _PerfilPageState extends State<PerfilPage> {
 
   DateTime? fechaNacimiento;
 
-  void _cerrarSesion(BuildContext context) async {
+  Future<void> _cerrarSesionYSalir() async {
     await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil('/access', (route) => false);
+    SystemNavigator.pop(); // ← cierra completamente la app
   }
 
   @override
@@ -46,7 +46,7 @@ class _PerfilPageState extends State<PerfilPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => _cerrarSesion(context),
+              onPressed: _cerrarSesionYSalir,
             ),
           ],
         ),
