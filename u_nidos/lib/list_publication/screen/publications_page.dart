@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
+
 import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
 import 'package:u_nidos/list_publication/bloc/publications_state.dart';
 import 'package:u_nidos/list_publication/bloc/publications_event.dart';
 import 'package:u_nidos/list_publication/repository/publications_repository.dart';
 import 'package:u_nidos/list_publication/widget/publication_card.dart';
+
 import 'package:u_nidos/shared_preferences.dart';
 import 'package:u_nidos/chat/screens/chat_conversation_page.dart';
 import 'package:u_nidos/auth/bloc/screens/public_profile_page.dart';
@@ -20,16 +22,7 @@ class PublicationsPage extends StatefulWidget {
 
 class _PublicationsPageState extends State<PublicationsPage> {
   final TextEditingController _busquedaCtrl = TextEditingController();
-  late Color _colorPrincipal = Colors.blueAccent;
   String _filtro = '';
-
-  final Map<String, Color> coloresUniversidades = {
-    'UNA': const Color(0xFFAD002E),
-    'UCR': const Color(0xFF007DC5),
-    'TEC': const Color(0xFF0C2340),
-    'UNED': const Color(0xFF003366),
-    'UTN': const Color(0xFF003865),
-  };
 
   @override
   void initState() {
@@ -50,10 +43,12 @@ class _PublicationsPageState extends State<PublicationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorPrincipal = Theme.of(context).primaryColor;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
-        backgroundColor: _colorPrincipal,
+        backgroundColor: colorPrincipal,
       ),
       body: Column(
         children: [
@@ -79,11 +74,12 @@ class _PublicationsPageState extends State<PublicationsPage> {
                 if (state is PublicacionCargando) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is PublicacionCargada) {
-                  final publicaciones = state.publicaciones.where((pub) {
-                    return pub.descripcion.toLowerCase().contains(
+                  final publicaciones =
+                      state.publicaciones.where((pub) {
+                        return pub.descripcion.toLowerCase().contains(
                           _filtro.toLowerCase(),
                         );
-                  }).toList();
+                      }).toList();
 
                   if (publicaciones.isEmpty) {
                     return const Center(
@@ -96,7 +92,6 @@ class _PublicationsPageState extends State<PublicationsPage> {
                     itemCount: publicaciones.length,
                     itemBuilder: (context, index) {
                       final p = publicaciones[index];
-
                       final fondoSeguro =
                           (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
 
@@ -120,8 +115,9 @@ class _PublicationsPageState extends State<PublicationsPage> {
                           if (uidActual == uidDestino) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content:
-                                    Text('No puedes chatear contigo mismo'),
+                                content: Text(
+                                  'No puedes chatear contigo mismo',
+                                ),
                               ),
                             );
                             return;
@@ -130,19 +126,19 @@ class _PublicationsPageState extends State<PublicationsPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ChatConversationPage(
-                                nombreContacto: p.nombre,
-                                fotoUrl: '',
-                                contactoId: uidDestino,
-                                usuarioActualId: uidActual,
-                              ),
+                              builder:
+                                  (_) => ChatConversationPage(
+                                    nombreContacto: p.nombre,
+                                    fotoUrl: '',
+                                    contactoId: uidDestino,
+                                    usuarioActualId: uidActual,
+                                  ),
                             ),
                           );
                         },
                         onCompartir: () {
                           Share.share(
-                            'Servicio en U-NIDOS:\n\n'
-                            '${p.nombre} ofrece: ${p.descripcion}',
+                            'Servicio en U-NIDOS:\n\n${p.nombre} ofrece: ${p.descripcion}',
                           );
                         },
                       );
@@ -162,7 +158,7 @@ class _PublicationsPageState extends State<PublicationsPage> {
         onPressed: () {
           // TODO: Navegar a la pantalla para publicar servicio
         },
-        backgroundColor: _colorPrincipal,
+        backgroundColor: colorPrincipal,
         child: const Icon(Icons.add),
       ),
     );

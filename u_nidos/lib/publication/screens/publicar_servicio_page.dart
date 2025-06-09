@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../bloc/publication_bloc.dart';
 import '../bloc/publication_event.dart';
 import '../bloc/publication_state.dart';
 
-class PublicarServicioPage extends StatelessWidget {
+class PublicarServicioPage extends StatefulWidget {
+  const PublicarServicioPage({super.key});
+
+  @override
+  State<PublicarServicioPage> createState() => _PublicarServicioPageState();
+}
+
+class _PublicarServicioPageState extends State<PublicarServicioPage> {
   final List<Map<String, dynamic>> categorias = [
     {'label': 'Arte', 'icon': Icons.brush, 'color': Colors.pink},
     {'label': 'Música', 'icon': Icons.music_note, 'color': Colors.deepPurple},
@@ -34,35 +40,27 @@ class PublicarServicioPage extends StatelessWidget {
     },
   ];
 
-  PublicarServicioPage({super.key});
-
-  void _mostrarColorPicker(BuildContext context, Color actual) async {
-    final color = await showDialog<Color>(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Seleccionar color de fondo'),
-            content: BlockPicker(
-              pickerColor: actual,
-              onColorChanged: (c) => Navigator.pop(context, c),
-            ),
-          ),
-    );
-
-    if (color != null) {
-      context.read<PublicationBloc>().add(BackgroundColorChanged(color));
-    }
-  }
+  final List<Color> coloresUniversales = [
+    Color(0xFFFF4D3D),
+    Color(0xFFFFB84D),
+    Color(0xFF4EB7AC),
+    Color(0xFF4B91E2),
+    Color(0xFF003A5C),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PublicationBloc(),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Nuevo servicio')),
-        body: BlocBuilder<PublicationBloc, PublicationState>(
-          builder: (context, state) {
-            return Padding(
+      create:
+          (_) =>
+              PublicationBloc()..add(
+                BackgroundColorChanged(Color(0xFFFF4D3D)),
+              ), // color inicial
+      child: BlocBuilder<PublicationBloc, PublicationState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Nuevo servicio')),
+            body: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,8 +70,6 @@ class PublicarServicioPage extends StatelessWidget {
                     style: TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 8),
-
-                  /// Dropdown personalizado con iconos y colores
                   DropdownButtonFormField<String>(
                     value: state.categoria.isEmpty ? null : state.categoria,
                     hint: const Text('Seleccionar categoría'),
@@ -111,34 +107,58 @@ class PublicarServicioPage extends StatelessWidget {
                       }
                     },
                   ),
-
                   const SizedBox(height: 16),
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: state.fondo,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          maxLines: 6,
-                          onChanged:
-                              (value) => context.read<PublicationBloc>().add(
-                                DescriptionChanged(value),
+                  const Text(
+                    'Selecciona un color de fondo:',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 12,
+                    children:
+                        coloresUniversales.map((color) {
+                          return GestureDetector(
+                            onTap: () {
+                              context.read<PublicationBloc>().add(
+                                BackgroundColorChanged(color),
+                              );
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color:
+                                      state.fondo == color
+                                          ? Colors.black
+                                          : Colors.transparent,
+                                  width: 2,
+                                ),
                               ),
-                          decoration: const InputDecoration.collapsed(
-                            hintText: 'Describe el servicio...',
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: state.fondo,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      maxLines: 6,
+                      onChanged:
+                          (value) => context.read<PublicationBloc>().add(
+                            DescriptionChanged(value),
                           ),
-                        ),
+                      decoration: const InputDecoration.collapsed(
+                        hintText: 'Describe el servicio...',
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.color_lens),
-                        onPressed:
-                            () => _mostrarColorPicker(context, state.fondo),
-                      ),
-                    ],
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Center(
@@ -162,11 +182,8 @@ class PublicarServicioPage extends StatelessWidget {
                                 );
                               },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(
-                              context,
-                            ).primaryColor, // ✅ color por universidad
-                        foregroundColor: Colors.white, // ✅ texto en blanco
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 12,
@@ -179,7 +196,7 @@ class PublicarServicioPage extends StatelessWidget {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white, // ✅ loader en blanco
+                                  color: Colors.white,
                                 ),
                               )
                               : const Text('Publicar'),
@@ -187,9 +204,9 @@ class PublicarServicioPage extends StatelessWidget {
                   ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

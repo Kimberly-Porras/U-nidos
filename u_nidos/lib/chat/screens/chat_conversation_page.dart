@@ -4,11 +4,10 @@ import '../bloc message/message_bloc.dart';
 import '../bloc message/message_event.dart';
 import '../bloc message/message_state.dart';
 import '../models/message.dart';
-import 'package:u_nidos/shared_preferences.dart';
 
 class ChatConversationPage extends StatefulWidget {
   final String nombreContacto;
-  final String fotoUrl; // no se utiliza, pero mantenido por compatibilidad
+  final String fotoUrl;
   final String contactoId;
   final String usuarioActualId;
 
@@ -26,35 +25,17 @@ class ChatConversationPage extends StatefulWidget {
 
 class _ChatConversationPageState extends State<ChatConversationPage> {
   final TextEditingController _messageCtrl = TextEditingController();
-  late Color _colorPrincipal = Colors.blueAccent;
-
-  final Map<String, Color> coloresUniversidades = {
-    'UNA': Color(0xFFAD002E),
-    'UCR': Color(0xFF007DC5),
-    'TEC': Color(0xFF0C2340),
-    'UNED': Color(0xFF003366),
-    'UTN': Color(0xFF003865),
-  };
 
   @override
   void initState() {
     super.initState();
-    _cargarColorUniversidad();
 
-    // Cargar mensajes
     context.read<MessageBloc>().add(
       LoadMessages(
         currentUserId: widget.usuarioActualId,
         otherUserId: widget.contactoId,
       ),
     );
-  }
-
-  Future<void> _cargarColorUniversidad() async {
-    final uni = await SharedPrefsService.obtenerUniversidad();
-    setState(() {
-      _colorPrincipal = coloresUniversidades[uni] ?? Colors.blueAccent;
-    });
   }
 
   void _enviarMensaje() {
@@ -74,9 +55,11 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorPrincipal = Theme.of(context).primaryColor;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: _colorPrincipal,
+        backgroundColor: colorPrincipal,
         title: Row(
           children: [
             const CircleAvatar(
@@ -127,7 +110,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                           decoration: BoxDecoration(
                             color:
                                 esMio
-                                    ? _colorPrincipal.withOpacity(0.15)
+                                    ? colorPrincipal.withOpacity(0.15)
                                     : Colors.grey[200],
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -176,7 +159,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send, color: _colorPrincipal),
+                  icon: Icon(Icons.send, color: colorPrincipal),
                   onPressed: _enviarMensaje,
                 ),
               ],

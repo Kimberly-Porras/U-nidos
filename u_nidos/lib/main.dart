@@ -27,6 +27,9 @@ import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
 import 'package:u_nidos/list_publication/repository/publications_repository.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'university_theme.dart';
+import 'app_colors.dart';
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
@@ -65,15 +68,6 @@ class UNidosApp extends StatefulWidget {
 
 class _UNidosAppState extends State<UNidosApp> {
   String? universidadSeleccionada;
-
-  final Map<String, Color> coloresUniversidades = {
-    'UNA': Color(0xFFAD002E),
-    'UCR': Color(0xFF007DC5),
-    'TEC': Color(0xFF0C2340),
-    'UNED': Color(0xFF003366),
-    'UTN': Color(0xFF003865),
-  };
-
   final AuthRepository authRepository = AuthRepository();
 
   @override
@@ -91,8 +85,7 @@ class _UNidosAppState extends State<UNidosApp> {
 
   @override
   Widget build(BuildContext context) {
-    Color colorPrimario =
-        coloresUniversidades[universidadSeleccionada] ?? Colors.grey;
+    final colorPrimario = AppColors.obtenerColor(universidadSeleccionada ?? '');
 
     return MultiBlocProvider(
       providers: [
@@ -186,7 +179,7 @@ class AuthWrapper extends StatelessWidget {
         } else if (state is AuthSuccess) {
           final uid = state.uid;
           print('🧑 UID autenticado desde AuthSuccess: $uid');
-          return HomeScreen(uid: state.uid);
+          return HomeScreen(uid: uid);
         } else {
           return const LoginScreen();
         }

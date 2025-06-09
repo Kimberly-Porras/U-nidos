@@ -28,21 +28,21 @@ class _PerfilPageState extends State<PerfilPage> {
 
   void _cerrarSesion(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
-
     if (!mounted) return;
-
     Navigator.of(context).pushNamedAndRemoveUntil('/access', (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final colorUniversidad = Theme.of(context).primaryColor;
 
     return BlocProvider(
       create: (_) => ProfileBloc()..add(LoadUserProfile(uid)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Mi Perfil'),
+          backgroundColor: colorUniversidad,
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -157,7 +157,7 @@ class _PerfilPageState extends State<PerfilPage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
+                      backgroundColor: colorUniversidad,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 50),
                     ),

@@ -31,7 +31,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis chats')),
+      appBar: AppBar(
+        title: const Text('Mis chats'),
+      ), // ✅ Usa el color del tema automáticamente
       body: BlocBuilder<ConversationListBloc, ConversationListState>(
         builder: (context, state) {
           if (state is ConversationListLoading) {
@@ -115,7 +117,7 @@ class _ChatPageState extends State<ChatPage> {
                             builder:
                                 (_) => ChatConversationPage(
                                   nombreContacto: nombre,
-                                  fotoUrl: '', // vacío porque no se usa
+                                  fotoUrl: '', // no se usa
                                   contactoId: contactoId,
                                   usuarioActualId: widget.usuarioActualId,
                                 ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,44 +12,18 @@ class HistorialPage extends StatefulWidget {
 class _HistorialPageState extends State<HistorialPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String universidad = 'UCR';
   String? uid;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _cargarUniversidad();
     uid = FirebaseAuth.instance.currentUser?.uid;
-  }
-
-  Future<void> _cargarUniversidad() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      universidad = prefs.getString('universidad') ?? 'UCR';
-    });
-  }
-
-  Color getColorUniversidad(String universidad) {
-    switch (universidad) {
-      case 'UNA':
-        return const Color(0xFFD32F2F);
-      case 'UCR':
-        return const Color(0xFF03A9F4);
-      case 'TEC':
-        return const Color(0xFF1565C0);
-      case 'UNED':
-        return const Color(0xFF0D47A1);
-      case 'UTN':
-        return const Color(0xFF1976D2);
-      default:
-        return Colors.blue;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorUniversidad = getColorUniversidad(universidad);
+    final colorUniversidad = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,20 +32,14 @@ class _HistorialPageState extends State<HistorialPage>
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
-          tabs: const [
-            Tab(text: 'Servicios'),
-            Tab(text: 'Aprendí'),
-          ],
+          tabs: const [Tab(text: 'Servicios'), Tab(text: 'Aprendí')],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildPublicacionesPropias(),
-          _buildAprendi(),
-        ],
+        children: [_buildPublicacionesPropias(), _buildAprendi()],
       ),
     );
   }
@@ -83,11 +50,12 @@ class _HistorialPageState extends State<HistorialPage>
     }
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('publicaciones')
-          .where('uid', isEqualTo: uid)
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('publicaciones')
+              .where('uid', isEqualTo: uid)
+              .orderBy('timestamp', descending: true)
+              .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -110,7 +78,7 @@ class _HistorialPageState extends State<HistorialPage>
 
             return Card(
               margin: const EdgeInsets.all(8),
-              color: const Color(0xFFFFEBEE),
+              color: Colors.white,
               child: ListTile(
                 title: Text(nombre),
                 subtitle: Column(
@@ -149,12 +117,13 @@ class _HistorialPageState extends State<HistorialPage>
     }
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(uid)
-          .collection('aprendi')
-          .orderBy('fecha', descending: true)
-          .snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(uid)
+              .collection('aprendi')
+              .orderBy('fecha', descending: true)
+              .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -178,7 +147,7 @@ class _HistorialPageState extends State<HistorialPage>
 
             return Card(
               margin: const EdgeInsets.all(8),
-              color: const Color(0xFFFFEBEE),
+              color: Colors.white,
               child: ListTile(
                 title: Text(nombre),
                 subtitle: Column(
@@ -201,9 +170,7 @@ class _HistorialPageState extends State<HistorialPage>
                             size: 24,
                           ),
                           onPressed: () async {
-                            await doc.reference.update({
-                              'calificacion': i + 1,
-                            });
+                            await doc.reference.update({'calificacion': i + 1});
                           },
                         );
                       }),
@@ -215,20 +182,23 @@ class _HistorialPageState extends State<HistorialPage>
                   onPressed: () async {
                     final confirmar = await showDialog<bool>(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('¿Eliminar entrada?'),
-                        content: const Text('Esta acción no se puede deshacer.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancelar'),
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('¿Eliminar entrada?'),
+                            content: const Text(
+                              'Esta acción no se puede deshacer.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Eliminar'),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Eliminar'),
-                          ),
-                        ],
-                      ),
                     );
 
                     if (confirmar == true) {
