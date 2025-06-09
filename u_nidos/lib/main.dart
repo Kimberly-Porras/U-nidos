@@ -147,6 +147,15 @@ class _UNidosAppState extends State<UNidosApp> {
                   const SnackBar(
                     content: Text('⚠️ Sin conexión a internet'),
                     backgroundColor: Colors.red,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              } else if (state is ConnectivityOnline) {
+                scaffoldMessengerKey.currentState?.showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Conexión a internet restablecida'),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 2),
                   ),
                 );
               }
