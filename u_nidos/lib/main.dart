@@ -93,16 +93,14 @@ class _UNidosAppState extends State<UNidosApp> {
         BlocProvider<AuthBloc>(create: (_) => AuthBloc(authRepository)),
         BlocProvider<RegisterBloc>(create: (_) => RegisterBloc()),
         BlocProvider<ConnectivityBloc>(
-          create:
-              (_) =>
-                  ConnectivityBloc(repository: widget.connectivityRepository),
+          create: (_) =>
+              ConnectivityBloc(repository: widget.connectivityRepository),
         ),
         BlocProvider<MessageBloc>(
           create: (_) => MessageBloc(repository: widget.chatRepository),
         ),
         BlocProvider<ConversationListBloc>(
-          create:
-              (_) => ConversationListBloc(repository: widget.chatRepository),
+          create: (_) => ConversationListBloc(repository: widget.chatRepository),
         ),
         BlocProvider<PublicacionBloc>(
           create: (_) => PublicacionBloc(PublicacionRepository()),
@@ -130,12 +128,8 @@ class _UNidosAppState extends State<UNidosApp> {
             return HomeScreen(uid: uid);
           },
           '/select_university':
-              (context) =>
-                  SelectUniversityScreen(onSeleccion: cargarUniversidad),
-
-          // ✅ Nueva ruta agregada
-          '/servicios_impartidos':
-              (context) => const ServiciosImpartidosScreen(),
+              (context) => SelectUniversityScreen(onSeleccion: cargarUniversidad),
+          '/servicios_impartidos': (context) => const ServiciosImpartidosScreen(),
         },
         builder: (context, child) {
           return BlocListener<ConnectivityBloc, ConnectivityState>(
@@ -161,10 +155,9 @@ class _UNidosAppState extends State<UNidosApp> {
             child: child!,
           );
         },
-        home:
-            universidadSeleccionada == null
-                ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
-                : const AuthWrapper(),
+        home: universidadSeleccionada == null
+            ? SelectUniversityScreen(onSeleccion: cargarUniversidad)
+            : const AuthWrapper(), // <-- se mantiene
       ),
     );
   }
@@ -175,6 +168,13 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // 🔁 Si ya hay usuario, disparar AuthLoggedIn
+    if (currentUser != null) {
+      context.read<AuthBloc>().add(AuthLoggedIn(uid: currentUser.uid));
+    }
+
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading) {

@@ -8,6 +8,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc(this.authRepository) : super(AuthInitial()) {
+    // 🔐 Sesión restaurada automáticamente (Firebase ya tiene un usuario)
+    on<AuthLoggedIn>((event, emit) async {
+      print('🔐 Sesión restaurada automáticamente: ${event.uid}');
+      emit(AuthLoading());
+      emit(AuthSuccess(event.uid));
+    });
+
+    // 🚀 Iniciar sesión
     on<AuthLoginRequested>((event, emit) async {
       emit(AuthLoading());
       try {
@@ -26,39 +34,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print('Error en AuthLoginRequested');
         print('Excepción capturada: $e');
         print('Stacktrace: $stack');
-
-        // Confirmación de propagación del error al estado
-        print('Emitiendo AuthFailure con mensaje: ${e.toString()}');
         emit(AuthFailure(e.toString()));
       }
     });
 
+    // 📝 Registro de nuevo usuario
     on<AuthRegisterRequested>((event, emit) async {
       emit(AuthLoading());
       try {
         print('Registrando usuario: ${event.email}');
         final user = await authRepository.register(event.email, event.password);
         if (user != null) {
-          print(' Registro exitoso para ${user.email}');
+          print('Registro exitoso para ${user.email}');
           final uid = FirebaseAuth.instance.currentUser!.uid;
           emit(AuthSuccess(uid));
         } else {
-          print(' Registro retornó usuario nulo');
+          print('Registro retornó usuario nulo');
           final uid = FirebaseAuth.instance.currentUser!.uid;
           emit(AuthSuccess(uid));
         }
       } catch (e, stack) {
-        print(' Error en AuthRegisterRequested');
-        print(' Excepción capturada: $e');
-        print(' Stacktrace: $stack');
-
-        print(' Emitiendo AuthFailure con mensaje: ${e.toString()}');
+        print('Error en AuthRegisterRequested');
+        print('Excepción capturada: $e');
+        print('Stacktrace: $stack');
         emit(AuthFailure(e.toString()));
       }
     });
 
+    // 🚪 Cerrar sesión
     on<AuthLogoutRequested>((event, emit) async {
-      print(' Cerrando sesión...');
+      print('Cerrando sesión...');
       await authRepository.logout();
       print('Sesión cerrada');
       emit(AuthInitial());
