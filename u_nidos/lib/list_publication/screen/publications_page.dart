@@ -74,12 +74,11 @@ class _PublicationsPageState extends State<PublicationsPage> {
                 if (state is PublicacionCargando) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is PublicacionCargada) {
-                  final publicaciones =
-                      state.publicaciones.where((pub) {
-                        return pub.descripcion.toLowerCase().contains(
-                          _filtro.toLowerCase(),
-                        );
-                      }).toList();
+                  final publicaciones = state.publicaciones.where((pub) {
+                    return pub.descripcion
+                        .toLowerCase()
+                        .contains(_filtro.toLowerCase());
+                  }).toList();
 
                   if (publicaciones.isEmpty) {
                     return const Center(
@@ -92,10 +91,10 @@ class _PublicationsPageState extends State<PublicationsPage> {
                     itemCount: publicaciones.length,
                     itemBuilder: (context, index) {
                       final p = publicaciones[index];
-                      final fondoSeguro =
-                          (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
+                      final fondoSeguro = (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
 
                       return ServiceCard(
+                        idPublicacion: p.id, // ✅ ID de la publicación
                         name: p.nombre,
                         description: p.descripcion,
                         fondo: fondoSeguro,
@@ -116,8 +115,7 @@ class _PublicationsPageState extends State<PublicationsPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'No puedes chatear contigo mismo',
-                                ),
+                                    'No puedes chatear contigo mismo'),
                               ),
                             );
                             return;
@@ -126,13 +124,12 @@ class _PublicationsPageState extends State<PublicationsPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (_) => ChatConversationPage(
-                                    nombreContacto: p.nombre,
-                                    fotoUrl: '',
-                                    contactoId: uidDestino,
-                                    usuarioActualId: uidActual,
-                                  ),
+                              builder: (_) => ChatConversationPage(
+                                nombreContacto: p.nombre,
+                                fotoUrl: '',
+                                contactoId: uidDestino,
+                                usuarioActualId: uidActual,
+                              ),
                             ),
                           );
                         },

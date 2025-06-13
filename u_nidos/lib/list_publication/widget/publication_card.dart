@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ServiceCard extends StatefulWidget {
+  final String idPublicacion;
   final String name;
   final String description;
   final int fondo;
@@ -12,6 +13,7 @@ class ServiceCard extends StatefulWidget {
 
   const ServiceCard({
     super.key,
+    required this.idPublicacion,
     required this.name,
     required this.description,
     required this.fondo,
@@ -26,22 +28,36 @@ class ServiceCard extends StatefulWidget {
 
 class _ServiceCardState extends State<ServiceCard> {
   bool aprendido = false;
+  String? nombreActual;
+  String? uidActual;
 
   @override
   void initState() {
     super.initState();
-    verificarSiYaAprendio();
+    cargarDatosUsuario();
   }
 
-  Future<void> verificarSiYaAprendio() async {
+  Future<void> cargarDatosUsuario() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
+    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+    final data = doc.data();
+
+    setState(() {
+      uidActual = uid;
+      nombreActual = data?['nombre']?.toString().trim();
+    });
+
+    await verificarSiYaAprendio(uid);
+  }
+
+  Future<void> verificarSiYaAprendio(String uid) async {
     final snap = await FirebaseFirestore.instance
         .collection('usuarios')
         .doc(uid)
         .collection('aprendi')
-        .where('nombre', isEqualTo: widget.name)
+        .where('idPublicacion', isEqualTo: widget.idPublicacion)
         .limit(1)
         .get();
 
@@ -51,18 +67,34 @@ class _ServiceCardState extends State<ServiceCard> {
   }
 
   Future<void> marcarComoAprendido() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || aprendido) return;
+    if (uidActual == null || aprendido) return;
 
+    // Obtener datos del usuario logueado
+    final userDoc = await FirebaseFirestore.instance.collection('usuarios').doc(uidActual).get();
+    final userData = userDoc.data();
+    final nombreUsuario = userData?['nombre'] ?? 'Sin nombre';
+
+    // Guardar en subcolección local
     await FirebaseFirestore.instance
         .collection('usuarios')
-        .doc(uid)
+        .doc(uidActual)
         .collection('aprendi')
         .add({
+      'idPublicacion': widget.idPublicacion,
       'nombre': widget.name,
       'descripcion': widget.description,
       'fecha': Timestamp.now(),
       'calificacion': 5,
+    });
+
+    // Guardar en colección global de calificaciones
+    await FirebaseFirestore.instance.collection('calificaciones').add({
+      'idPublicacion': widget.idPublicacion,
+      'autorId': widget.name, // Aquí asumes que name es el autor. Mejor si pasas el uid real
+      'usuarioId': uidActual,
+      'nombreUsuario': nombreUsuario,
+      'calificacion': 5,
+      'timestamp': FieldValue.serverTimestamp(),
     });
 
     setState(() => aprendido = true);
@@ -92,14 +124,16 @@ class _ServiceCardState extends State<ServiceCard> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.check_circle,
-                    color: aprendido ? Colors.green : Colors.grey,
+                // Solo mostrar el check si el usuario actual no es el creador
+                if (nombreActual != null && nombreActual != widget.name)
+                  IconButton(
+                    icon: Icon(
+                      Icons.check_circle,
+                      color: aprendido ? Colors.green : Colors.grey,
+                    ),
+                    tooltip: 'Marcar como aprendido',
+                    onPressed: marcarComoAprendido,
                   ),
-                  tooltip: 'Marcar como aprendido',
-                  onPressed: marcarComoAprendido,
-                ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_horiz),
                   onSelected: (value) {

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // ← agregado para cerrar la app correctamente
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -27,9 +27,19 @@ class _PerfilPageState extends State<PerfilPage> {
 
   DateTime? fechaNacimiento;
 
+  final List<String> campusList = [
+    'Campus Coto (Corredores)',
+    'Campus Pérez Zeledón',
+    'Campus Omar Dengo (Heredia)',
+    'Campus Sarapiquí',
+    'Campus Liberia',
+    'Campus Nicoya',
+    'Campus Puntarenas'
+  ];
+
   Future<void> _cerrarSesionYSalir() async {
     await FirebaseAuth.instance.signOut();
-    SystemNavigator.pop(); // ← cierra completamente la app
+    SystemNavigator.pop();
   }
 
   @override
@@ -56,17 +66,19 @@ class _PerfilPageState extends State<PerfilPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            nombreCtrl.text = state.nombre;
-            carreraCtrl.text = state.carrera;
-            campusCtrl.text = state.campus;
-            habilidadesCtrl.text = state.habilidades;
-            anioIngresoCtrl.text = state.anioIngreso.toString();
-            fechaNacimiento = state.fechaNacimiento;
-            emailCtrl.text = state.email;
-            fechaNacimientoCtrl.text =
-                fechaNacimiento != null
-                    ? DateFormat('dd/MM/yyyy').format(fechaNacimiento!)
-                    : '';
+            // ✅ Solo se llena si están vacíos (para no sobrescribir cambios manuales)
+            if (nombreCtrl.text.isEmpty) nombreCtrl.text = state.nombre;
+            if (carreraCtrl.text.isEmpty) carreraCtrl.text = state.carrera;
+            if (campusCtrl.text.isEmpty) campusCtrl.text = state.campus;
+            if (habilidadesCtrl.text.isEmpty) habilidadesCtrl.text = state.habilidades;
+            if (anioIngresoCtrl.text.isEmpty) anioIngresoCtrl.text = state.anioIngreso.toString();
+            if (emailCtrl.text.isEmpty) emailCtrl.text = state.email;
+            if (fechaNacimiento == null) {
+              fechaNacimiento = state.fechaNacimiento;
+              fechaNacimientoCtrl.text = fechaNacimiento != null
+                  ? DateFormat('dd/MM/yyyy').format(fechaNacimiento!)
+                  : '';
+            }
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -82,17 +94,28 @@ class _PerfilPageState extends State<PerfilPage> {
                     decoration: const InputDecoration(labelText: 'Carrera'),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: campusCtrl,
+                  DropdownButtonFormField<String>(
+                    value: campusList.contains(campusCtrl.text) ? campusCtrl.text : null,
+                    items: campusList.map((campus) {
+                      return DropdownMenuItem(
+                        value: campus,
+                        child: Text(campus),
+                      );
+                    }).toList(),
+                    onChanged: (nuevoCampus) {
+                      if (nuevoCampus != null) {
+                        setState(() {
+                          campusCtrl.text = nuevoCampus;
+                        });
+                      }
+                    },
                     decoration: const InputDecoration(labelText: 'Campus'),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: anioIngresoCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Año de ingreso',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Año de ingreso'),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -111,18 +134,15 @@ class _PerfilPageState extends State<PerfilPage> {
                       if (selected != null) {
                         setState(() {
                           fechaNacimiento = selected;
-                          fechaNacimientoCtrl.text = DateFormat(
-                            'dd/MM/yyyy',
-                          ).format(selected);
+                          fechaNacimientoCtrl.text =
+                              DateFormat('dd/MM/yyyy').format(selected);
                         });
                       }
                     },
                     child: AbsorbPointer(
                       child: TextField(
                         controller: fechaNacimientoCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Fecha de nacimiento',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Fecha de nacimiento'),
                       ),
                     ),
                   ),
@@ -135,6 +155,8 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
+                      print('📤 Campus seleccionado: ${campusCtrl.text}');
+
                       final nuevoUsuario = UsuarioModel(
                         uid: uid,
                         nombre: nombreCtrl.text.trim(),

@@ -51,8 +51,8 @@ class _PublicarServicioPageState extends State<PublicarServicioPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PublicationBloc()
-        ..add(BackgroundColorChanged(Color(0xFFFF4D3D))),
+      create: (_) =>
+          PublicationBloc()..add(BackgroundColorChanged(Color(0xFFFF4D3D))),
       child: BlocListener<PublicationBloc, PublicationState>(
         listener: (context, state) async {
           if (state is PublicacionExitosa) {
@@ -64,7 +64,8 @@ class _PublicarServicioPageState extends State<PublicarServicioPage> {
             );
             await Future.delayed(const Duration(seconds: 1));
             if (context.mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/home', (route) => false);
             }
           } else if (state is PublicacionError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -79,143 +80,147 @@ class _PublicarServicioPageState extends State<PublicarServicioPage> {
           builder: (context, state) {
             return Scaffold(
               appBar: AppBar(title: const Text('Nuevo servicio')),
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Selecciona una categoría:',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value: state.categoria.isEmpty ? null : state.categoria,
-                      hint: const Text('Seleccionar categoría'),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Selecciona una categoría:',
+                        style: TextStyle(fontSize: 16),
                       ),
-                      items: categorias.map<DropdownMenuItem<String>>((cat) {
-                        return DropdownMenuItem<String>(
-                          value: cat['label'] as String,
-                          child: Row(
-                            children: [
-                              Icon(
-                                cat['icon'],
-                                color: cat['color'],
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(cat['label']),
-                            ],
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value:
+                            state.categoria.isEmpty ? null : state.categoria,
+                        hint: const Text('Seleccionar categoría'),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        );
-                      }).toList(),
-                      onChanged: (valor) {
-                        if (valor != null) {
-                          context.read<PublicationBloc>().add(
-                                CategoryChanged(valor),
-                              );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Selecciona un color de fondo:',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 12,
-                      children: coloresUniversales.map((color) {
-                        return GestureDetector(
-                          onTap: () {
-                            context.read<PublicationBloc>().add(
-                                  BackgroundColorChanged(color),
-                                );
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: state.fondo == color
-                                    ? Colors.black
-                                    : Colors.transparent,
-                                width: 2,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                        items:
+                            categorias.map<DropdownMenuItem<String>>((cat) {
+                          return DropdownMenuItem<String>(
+                            value: cat['label'] as String,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  cat['icon'],
+                                  color: cat['color'],
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(cat['label']),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (valor) {
+                          if (valor != null) {
+                            context
+                                .read<PublicationBloc>()
+                                .add(CategoryChanged(valor));
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Selecciona un color de fondo:',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        children: coloresUniversales.map((color) {
+                          return GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<PublicationBloc>()
+                                  .add(BackgroundColorChanged(color));
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: state.fondo == color
+                                      ? Colors.black
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: state.fondo,
-                        borderRadius: BorderRadius.circular(8),
+                          );
+                        }).toList(),
                       ),
-                      child: TextField(
-                        maxLines: 6,
-                        onChanged: (value) => context
-                            .read<PublicationBloc>()
-                            .add(DescriptionChanged(value)),
-                        decoration: const InputDecoration.collapsed(
-                          hintText: 'Describe el servicio...',
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: state.fondo,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        style: const TextStyle(color: Colors.white),
+                        child: TextField(
+                          maxLines: 6,
+                          onChanged: (value) => context
+                              .read<PublicationBloc>()
+                              .add(DescriptionChanged(value)),
+                          decoration: const InputDecoration.collapsed(
+                            hintText: 'Describe el servicio...',
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: state.enviando
-                            ? null
-                            : () {
-                                if (state.categoria.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Por favor selecciona una categoría',
+                      const SizedBox(height: 24),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: state.enviando
+                              ? null
+                              : () {
+                                  if (state.categoria.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Por favor selecciona una categoría',
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                context
-                                    .read<PublicationBloc>()
-                                    .add(SubmitPublication());
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 12,
+                                    );
+                                    return;
+                                  }
+                                  context
+                                      .read<PublicationBloc>()
+                                      .add(SubmitPublication());
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 12,
+                            ),
                           ),
+                          child: state.enviando
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Publicar'),
                         ),
-                        child: state.enviando
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Publicar'),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );

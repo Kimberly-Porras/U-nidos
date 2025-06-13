@@ -29,6 +29,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'university_theme.dart';
 import 'app_colors.dart';
+import 'package:u_nidos/services/servicios_impartidos_screen.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -131,6 +132,10 @@ class _UNidosAppState extends State<UNidosApp> {
           '/select_university':
               (context) =>
                   SelectUniversityScreen(onSeleccion: cargarUniversidad),
+
+          // ✅ Nueva ruta agregada
+          '/servicios_impartidos':
+              (context) => const ServiciosImpartidosScreen(),
         },
         builder: (context, child) {
           return BlocListener<ConnectivityBloc, ConnectivityState>(

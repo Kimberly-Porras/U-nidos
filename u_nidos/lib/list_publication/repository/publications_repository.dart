@@ -8,19 +8,18 @@ class PublicacionRepository {
     try {
       print('📥 Consultando publicaciones para el campus: $campus');
 
-      final query =
-          await _firestore
-              .collection('publicaciones')
-              .where('campus', isEqualTo: campus)
-              .orderBy('timestamp', descending: true)
-              .get();
+      final query = await _firestore
+          .collection('publicaciones')
+          .where('campus', isEqualTo: campus)
+          .orderBy('timestamp', descending: true)
+          .get();
 
       print('📄 Documentos encontrados: ${query.docs.length}');
 
-      return query.docs.map((doc) => Publicacion.fromMap(doc.data())).toList();
+      return query.docs.map((doc) => Publicacion.fromDocument(doc)).toList();
     } catch (e) {
       print('🔥 Error en obtenerPublicacionesPorCampus: $e');
-      rethrow; // Propaga el error al BLoC para que se dispare PublicacionError
+      rethrow;
     }
   }
 }

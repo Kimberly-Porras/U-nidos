@@ -5,27 +5,28 @@ import 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc()
-      : super(
-          ProfileState(
-            uid: '',
-            nombre: '',
-            carrera: '',
-            campus: '',
-            email: '',
-            habilidades: '',
-            anioIngreso: 0,
-            fechaNacimiento: null,
-            cargando: false,
-          ),
-        ) {
+    : super(
+        ProfileState(
+          uid: '',
+          nombre: '',
+          carrera: '',
+          campus: '',
+          email: '',
+          habilidades: '',
+          anioIngreso: 0,
+          fechaNacimiento: null,
+          cargando: false,
+        ),
+      ) {
     on<LoadUserProfile>((event, emit) async {
       emit(state.copyWith(cargando: true));
 
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('usuarios')
-            .doc(event.uid)
-            .get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('usuarios')
+                .doc(event.uid)
+                .get();
 
         final data = doc.data() ?? {};
 
@@ -51,12 +52,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     on<GuardarCambiosPerfil>((event, emit) async {
       emit(state.copyWith(cargando: true));
+      print('🟡 Ejecutando GuardarCambiosPerfil');
+      print('👉 Campus recibido: ${event.usuario.campus}');
 
+      emit(state.copyWith(cargando: true));
       try {
         await FirebaseFirestore.instance
             .collection('usuarios')
             .doc(event.usuario.uid)
-            .update(event.usuario.toMap());
+            .set(event.usuario.toMap(), SetOptions(merge: true)); // ✅
 
         emit(
           state.copyWith(
@@ -72,6 +76,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             cargando: false,
           ),
         );
+
+        add(LoadUserProfile(event.usuario.uid)); // ✅ para refrescar la vista
       } catch (e) {
         emit(state.copyWith(cargando: false));
         print('❌ Error al guardar perfil: $e');

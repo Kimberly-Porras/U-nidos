@@ -17,13 +17,12 @@ class ChatRepository {
     required String message,
   }) async {
     final conversationId = getConversationId(senderId, receiverId);
-    final timestamp = Timestamp.now();
 
     final messageData = {
       'senderId': senderId,
       'receiverId': receiverId,
       'message': message,
-      'timestamp': timestamp,
+      'timestamp': FieldValue.serverTimestamp(), // ✅ Tiempo desde el servidor
       'type': 'text',
     };
 
@@ -38,7 +37,7 @@ class ChatRepository {
     await _firestore.collection('chats').doc(conversationId).set({
       'participants': [senderId, receiverId],
       'lastMessage': message,
-      'timestamp': timestamp,
+      'timestamp': FieldValue.serverTimestamp(), // ✅ Tiempo desde el servidor
       'senderId': senderId,
     }, SetOptions(merge: true));
   }
@@ -53,10 +52,9 @@ class ChatRepository {
         .orderBy('timestamp')
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => Message.fromMap(doc.data(), doc.id))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => Message.fromMap(doc.data(), doc.id))
+              .toList(),
         );
   }
 

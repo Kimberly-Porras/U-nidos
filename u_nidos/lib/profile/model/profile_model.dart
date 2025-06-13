@@ -42,12 +42,15 @@ class UsuarioModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'uid': uid,
       'nombre': nombre,
       'carrera': carrera,
       'campus': campus,
       'email': email,
       'habilidades': habilidades,
-      'fechaNacimiento': fechaNacimiento,
+      'fechaNacimiento': fechaNacimiento != null
+          ? Timestamp.fromDate(fechaNacimiento!)
+          : null,
       'anioIngreso': anioIngreso,
       'intereses': intereses,
     };
