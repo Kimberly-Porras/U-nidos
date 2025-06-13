@@ -7,7 +7,6 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
   final PublicacionRepository repository;
 
   PublicacionBloc(this.repository) : super(PublicacionInicial()) {
-    // 🔄 Cuando se dispare el evento CargarPublicaciones...
     on<CargarPublicaciones>(_onCargar);
   }
 
@@ -15,15 +14,16 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
     CargarPublicaciones event,
     Emitter<PublicacionState> emit,
   ) async {
-    emit(PublicacionCargando()); // Estado de carga
+    emit(PublicacionCargando());
 
     try {
-      // 🔎 Cargar publicaciones filtrando por campus
+      // 🔍 Pasamos el UID actual para excluir publicaciones propias
       final publicaciones = await repository.obtenerPublicacionesPorCampus(
         event.campus,
+        event.currentUserId, // 👈 nuevo parámetro
       );
 
-      emit(PublicacionCargada(publicaciones)); // Publicaciones listas
+      emit(PublicacionCargada(publicaciones));
     } catch (e) {
       print('🔥 Error cargando publicaciones: $e');
       emit(PublicacionError('Error al cargar publicaciones'));

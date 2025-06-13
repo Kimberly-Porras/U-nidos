@@ -9,9 +9,10 @@ abstract class PublicacionEvent extends Equatable {
 
 class CargarPublicaciones extends PublicacionEvent {
   final String campus;
+  final String currentUserId;
 
-  const CargarPublicaciones(this.campus);
+  const CargarPublicaciones(this.campus, this.currentUserId);
 
   @override
-  List<Object> get props => [campus];
+  List<Object> get props => [campus, currentUserId];
 }

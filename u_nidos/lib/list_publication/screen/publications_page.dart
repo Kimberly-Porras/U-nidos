@@ -6,7 +6,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:u_nidos/list_publication/bloc/publications_bloc.dart';
 import 'package:u_nidos/list_publication/bloc/publications_state.dart';
 import 'package:u_nidos/list_publication/bloc/publications_event.dart';
-import 'package:u_nidos/list_publication/repository/publications_repository.dart';
 import 'package:u_nidos/list_publication/widget/publication_card.dart';
 
 import 'package:u_nidos/shared_preferences.dart';
@@ -32,12 +31,16 @@ class _PublicationsPageState extends State<PublicationsPage> {
 
   Future<void> _cargarYFiltrarPublicaciones() async {
     final campus = await SharedPrefsService.obtenerCampus();
-    print("🧪 Campus obtenido de SharedPrefs: $campus");
+    final user = FirebaseAuth.instance.currentUser;
 
-    if (campus != null && campus.isNotEmpty) {
-      context.read<PublicacionBloc>().add(CargarPublicaciones(campus));
+    if (campus != null && campus.isNotEmpty && user != null) {
+      print("🧪 Campus obtenido de SharedPrefs: $campus");
+      print("🔐 UID actual: ${user.uid}");
+      context.read<PublicacionBloc>().add(
+            CargarPublicaciones(campus, user.uid),
+          );
     } else {
-      print("⚠️ No se encontró campus en SharedPreferences");
+      print("⚠️ Campus o usuario no disponible.");
     }
   }
 
@@ -91,10 +94,11 @@ class _PublicationsPageState extends State<PublicationsPage> {
                     itemCount: publicaciones.length,
                     itemBuilder: (context, index) {
                       final p = publicaciones[index];
-                      final fondoSeguro = (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
+                      final fondoSeguro =
+                          (p.fondo is int) ? p.fondo : 0xFFE0E0E0;
 
                       return ServiceCard(
-                        idPublicacion: p.id, // ✅ ID de la publicación
+                        idPublicacion: p.id,
                         name: p.nombre,
                         description: p.descripcion,
                         fondo: fondoSeguro,
@@ -114,8 +118,7 @@ class _PublicationsPageState extends State<PublicationsPage> {
                           if (uidActual == uidDestino) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                    'No puedes chatear contigo mismo'),
+                                content: Text('No puedes chatear contigo mismo'),
                               ),
                             );
                             return;
