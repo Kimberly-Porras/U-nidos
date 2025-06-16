@@ -26,18 +26,8 @@ class _PerfilPageState extends State<PerfilPage> {
   final TextEditingController anioIngresoCtrl = TextEditingController();
   final TextEditingController fechaNacimientoCtrl = TextEditingController();
   final TextEditingController emailCtrl = TextEditingController();
-
+  bool editando = false;
   DateTime? fechaNacimiento;
-
-  final List<String> campusList = [
-    'Campus Coto (Corredores)',
-    'Campus Pérez Zeledón',
-    'Campus Omar Dengo (Heredia)',
-    'Campus Sarapiquí',
-    'Campus Liberia',
-    'Campus Nicoya',
-    'Campus Puntarenas',
-  ];
 
   Future<void> _cerrarSesionYSalir() async {
     await FirebaseAuth.instance.signOut();
@@ -85,122 +75,128 @@ class _PerfilPageState extends State<PerfilPage> {
             }
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.only(
+                top: 0,
+                left: 20,
+                right: 20,
+                bottom: 20,
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    controller: nombreCtrl,
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: carreraCtrl,
-                    decoration: const InputDecoration(labelText: 'Carrera'),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value:
-                        campusList.contains(campusCtrl.text)
-                            ? campusCtrl.text
-                            : null,
-                    items:
-                        campusList.map((campus) {
-                          return DropdownMenuItem(
-                            value: campus,
-                            child: Text(campus),
-                          );
-                        }).toList(),
-                    onChanged: (nuevoCampus) {
-                      if (nuevoCampus != null) {
-                        setState(() {
-                          campusCtrl.text = nuevoCampus;
-                        });
-                      }
-                    },
-                    decoration: const InputDecoration(labelText: 'Campus'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: anioIngresoCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Año de ingreso',
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: habilidadesCtrl,
-                    decoration: const InputDecoration(labelText: 'Habilidades'),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () async {
-                      final selected = await showDatePicker(
-                        context: context,
-                        initialDate: fechaNacimiento ?? DateTime(2000),
-                        firstDate: DateTime(1900),
-                        lastDate: DateTime.now(),
-                      );
-                      if (selected != null && mounted) {
-                        setState(() {
-                          fechaNacimiento = selected;
-                          fechaNacimientoCtrl.text = DateFormat(
-                            'dd/MM/yyyy',
-                          ).format(selected);
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: TextField(
-                        controller: fechaNacimientoCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Fecha de nacimiento',
-                        ),
+                    color: const Color(0xFFFFF1F2),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Nombre',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child:
+                                    editando
+                                        ? TextField(
+                                          controller: nombreCtrl,
+                                          textAlign: TextAlign.center,
+                                          decoration: const InputDecoration(
+                                            isDense: true,
+                                            border: InputBorder.none,
+                                          ),
+                                        )
+                                        : Text(
+                                          nombreCtrl.text,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  editando ? Icons.save : Icons.edit,
+                                  color: Colors.grey[700],
+                                ),
+                                onPressed: () {
+                                  if (editando) {
+                                    final nuevoUsuario = UsuarioModel(
+                                      uid: uid,
+                                      nombre: nombreCtrl.text.trim(),
+                                      carrera: carreraCtrl.text.trim(),
+                                      campus: campusCtrl.text.trim(),
+                                      email: state.email,
+                                      habilidades: habilidadesCtrl.text.trim(),
+                                      fechaNacimiento: fechaNacimiento,
+                                      anioIngreso:
+                                          int.tryParse(
+                                            anioIngresoCtrl.text.trim(),
+                                          ) ??
+                                          0,
+                                      intereses: state.intereses,
+                                    );
+                                    context.read<ProfileBloc>().add(
+                                      GuardarCambiosPerfil(nuevoUsuario),
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Cambios guardados'),
+                                      ),
+                                    );
+                                  }
+                                  setState(() => editando = !editando);
+                                },
+                              ),
+                            ],
+                          ),
+                          _campoEditableCentrado(
+                            'Carrera',
+                            carreraCtrl,
+                            editando,
+                          ),
+                          _campoEditableCentrado(
+                            'Campus',
+                            campusCtrl,
+                            editando,
+                          ),
+                          _campoEditableCentrado(
+                            'Año de ingreso',
+                            anioIngresoCtrl,
+                            editando,
+                          ),
+                          _campoEditableCentrado(
+                            'Fecha de nacimiento',
+                            fechaNacimientoCtrl,
+                            false,
+                          ),
+                          _campoEditableCentrado('Correo', emailCtrl, false),
+                          _campoEditableCentrado(
+                            'Habilidades',
+                            habilidadesCtrl,
+                            editando,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: emailCtrl,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Correo'),
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      final nuevoUsuario = UsuarioModel(
-                        uid: uid,
-                        nombre: nombreCtrl.text.trim(),
-                        carrera: carreraCtrl.text.trim(),
-                        campus: campusCtrl.text.trim(),
-                        email: state.email,
-                        habilidades: habilidadesCtrl.text.trim(),
-                        fechaNacimiento: fechaNacimiento,
-                        anioIngreso:
-                            int.tryParse(anioIngresoCtrl.text.trim()) ?? 0,
-                        intereses: state.intereses,
-                      );
-
-                      context.read<ProfileBloc>().add(
-                        GuardarCambiosPerfil(nuevoUsuario),
-                      );
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Cambios guardados')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorUniversidad,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text('Guardar cambios'),
-                  ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
                   const Text(
                     'Historial de calificaciones de servicios ofrecidos',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   FutureBuilder<QuerySnapshot>(
@@ -212,15 +208,7 @@ class _PerfilPageState extends State<PerfilPage> {
                             .get(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: Column(
-                            children: const [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 10),
-                              Text("Cargando servicios..."),
-                            ],
-                          ),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       final publicaciones = snapshot.data?.docs ?? [];
@@ -253,15 +241,23 @@ class _PerfilPageState extends State<PerfilPage> {
                               final promedio = snapshot.data ?? 0.0;
 
                               return Card(
+                                color: const Color(0xFFFFF1F2),
                                 margin: const EdgeInsets.symmetric(vertical: 8),
-                                child: ListTile(
-                                  title: Text(
-                                    pub['categoria'] ?? 'Sin categoría',
-                                  ),
-                                  subtitle: Column(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      Text(
+                                        pub['categoria'] ?? 'Sin categoría',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                       Text(
                                         pub['descripcion'] ?? 'Sin descripción',
                                       ),
@@ -300,6 +296,44 @@ class _PerfilPageState extends State<PerfilPage> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _campoEditableCentrado(
+    String label,
+    TextEditingController controller,
+    bool editable,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          editable
+              ? TextField(
+                controller: controller,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                ),
+              )
+              : Text(
+                controller.text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+        ],
       ),
     );
   }
