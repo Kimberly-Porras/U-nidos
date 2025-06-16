@@ -5,7 +5,7 @@ import '../auth/auth_event.dart';
 import '../auth/auth_state.dart';
 import 'access_screen.dart';
 import '../../../services/home_screen.dart';
-import 'forgot_password_screen.dart'; // ✅ NUEVA PANTALLA IMPORTADA
+import 'forgot_password_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _passwordVisible = false; // 👁 Controla la visibilidad de la contraseña
 
   void _login(BuildContext context) {
     final email = _emailController.text.trim();
@@ -62,9 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => HomeScreen(
-                  uid: FirebaseAuth.instance.currentUser!.uid,
-                ),
+                builder:
+                    (_) =>
+                        HomeScreen(uid: FirebaseAuth.instance.currentUser!.uid),
               ),
             );
           }
@@ -114,10 +115,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 15),
                       TextField(
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: !_passwordVisible,
                         decoration: InputDecoration(
                           hintText: 'Contraseña',
                           prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -137,7 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           child: const Text(
                             '¿Olvidaste tu contraseña?',
-                            style: TextStyle(decoration: TextDecoration.underline),
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
                       ),

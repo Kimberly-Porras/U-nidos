@@ -3,12 +3,13 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 import '../../repository/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc(this.authRepository) : super(AuthInitial()) {
-    // 🔐 Sesión restaurada automáticamente (Firebase ya tiene un usuario)
+    // 🔐 Sesión restaurada automáticamente
     on<AuthLoggedIn>((event, emit) async {
       print('🔐 Sesión restaurada automáticamente: ${event.uid}');
       emit(AuthLoading());
@@ -43,15 +44,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         print('Registrando usuario: ${event.email}');
+
         final user = await authRepository.register(event.email, event.password);
+
         if (user != null) {
-          print('Registro exitoso para ${user.email}');
-          final uid = FirebaseAuth.instance.currentUser!.uid;
+          final uid = user.uid;
+
+          print('✅ Registro exitoso para ${user.email} con UID: $uid');
+
+          // 🔽 Guardar el perfil en Firestore
+          await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
+            'email': event.email,
+            'nombre': 'Nombre temporal', // Reemplazá esto si lo pasás desde UI
+            'creado': DateTime.now(),
+          });
+
           emit(AuthSuccess(uid));
         } else {
-          print('Registro retornó usuario nulo');
-          final uid = FirebaseAuth.instance.currentUser!.uid;
-          emit(AuthSuccess(uid));
+          emit(AuthFailure('No se pudo registrar el usuario.'));
         }
       } catch (e, stack) {
         print('Error en AuthRegisterRequested');
