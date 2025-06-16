@@ -6,22 +6,27 @@ class PublicacionRepository {
 
   Future<List<Publicacion>> obtenerPublicacionesPorCampus(
     String campus,
-    String currentUserId, // 👈 nuevo parámetro
+    String currentUserId,
   ) async {
     try {
-      print('📥 Consultando publicaciones para el campus: $campus (excluyendo UID: $currentUserId)');
+      print('📥 Consultando publicaciones para el campus: $campus');
 
-      final query = await _firestore
-          .collection('publicaciones')
-          .where('campus', isEqualTo: campus)
-          .where('uid', isNotEqualTo: currentUserId) // 👈 filtro
-          .orderBy('uid') // 👈 requerido para usar isNotEqualTo
-          .orderBy('timestamp', descending: true)
-          .get();
+      final query =
+          await _firestore
+              .collection('publicaciones')
+              .where('campus', isEqualTo: campus)
+              .orderBy('timestamp', descending: true)
+              .get();
 
-      print('📄 Documentos encontrados (sin los del usuario actual): ${query.docs.length}');
+      // 🔽 Filtro local: excluir las del usuario actual
+      final docsFiltrados =
+          query.docs.where((doc) => doc['uid'] != currentUserId).toList();
 
-      return query.docs.map((doc) => Publicacion.fromDocument(doc)).toList();
+      print(
+        '📄 Documentos encontrados (excluyendo los del usuario): ${docsFiltrados.length}',
+      );
+
+      return docsFiltrados.map((doc) => Publicacion.fromDocument(doc)).toList();
     } catch (e) {
       print('🔥 Error en obtenerPublicacionesPorCampus: $e');
       rethrow;
