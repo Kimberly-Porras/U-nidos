@@ -18,7 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _passwordVisible = false; // 👁 Controla la visibilidad de la contraseña
+  bool _passwordVisible = false;
 
   void _login(BuildContext context) {
     final email = _emailController.text.trim();
@@ -74,25 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Text(
-                  'U-NIDOS',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: colorUni,
-                  ),
-                ),
+                Image.asset('assets/logos/icono.png', width: 180),
                 const SizedBox(height: 30),
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: colorUni,
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.all(20),
                   margin: const EdgeInsets.symmetric(horizontal: 30),
