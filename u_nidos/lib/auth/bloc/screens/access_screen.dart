@@ -24,6 +24,10 @@ class _AccessState extends State<Access> {
   String? usernameErrorMessage;
   String? emailErrorMessage;
 
+  // 👁️ Variables para mostrar u ocultar contraseñas
+  bool _verPassword = false;
+  bool _verConfirmacion = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,27 +60,28 @@ class _AccessState extends State<Access> {
               });
             } else if (msg.contains("correo") &&
                 (msg.contains("ya está en uso") ||
-                 msg.contains("ya fue registrado") ||
-                 msg.contains("ya está registrado"))) {
+                    msg.contains("ya fue registrado") ||
+                    msg.contains("ya está registrado"))) {
               setState(() {
                 emailError = true;
                 emailErrorMessage = "Este correo ya está registrado.";
               });
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
           } else if (state is RegisterAccessCompleted) {
             if (Navigator.canPop(context)) Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => Profile(
-                  email: emailCtrl.text.trim(),
-                  username: usernameCtrl.text.trim(),
-                  password: passwordCtrl.text.trim(),
-                ),
+                builder:
+                    (_) => Profile(
+                      email: emailCtrl.text.trim(),
+                      username: usernameCtrl.text.trim(),
+                      password: passwordCtrl.text.trim(),
+                    ),
               ),
             );
           }
@@ -95,8 +100,9 @@ class _AccessState extends State<Access> {
                     labelText: 'Correo electrónico',
                     errorText: emailError ? emailErrorMessage : null,
                   ),
-                  validator: (value) =>
-                      value!.contains('@') ? null : 'Correo inválido',
+                  validator:
+                      (value) =>
+                          value!.contains('@') ? null : 'Correo inválido',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -113,24 +119,54 @@ class _AccessState extends State<Access> {
                       });
                     }
                   },
-                  validator: (value) =>
-                      value!.isEmpty ? 'Campo obligatorio' : null,
+                  validator:
+                      (value) => value!.isEmpty ? 'Campo obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: passwordCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Contraseña'),
-                  validator: (value) =>
-                      value!.length >= 6 ? null : 'Mínimo 6 caracteres',
+                  obscureText: !_verPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _verPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _verPassword = !_verPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  validator:
+                      (value) =>
+                          value!.length >= 6 ? null : 'Mínimo 6 caracteres',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: confirmPasswordCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Confirmar contraseña'),
-                  validator: (value) =>
-                      value == passwordCtrl.text ? null : 'Las contraseñas no coinciden',
+                  obscureText: !_verConfirmacion,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmar contraseña',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _verConfirmacion
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _verConfirmacion = !_verConfirmacion;
+                        });
+                      },
+                    ),
+                  ),
+                  validator:
+                      (value) =>
+                          value == passwordCtrl.text
+                              ? null
+                              : 'Las contraseñas no coinciden',
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -159,12 +195,12 @@ class _AccessState extends State<Access> {
                       }
 
                       context.read<RegisterBloc>().add(
-                            AccessCompleted(
-                              correo: email,
-                              password: password,
-                              nombre: username,
-                            ),
-                          );
+                        AccessCompleted(
+                          correo: email,
+                          password: password,
+                          nombre: username,
+                        ),
+                      );
                     }
                   },
                   child: const Text('Siguiente'),
