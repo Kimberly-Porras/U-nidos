@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:u_nidos/profile/bloc/profile_bloc.dart';
 import 'package:u_nidos/profile/bloc/profile_event.dart';
 import 'package:u_nidos/profile/bloc/profile_state.dart';
 import 'package:u_nidos/profile/model/profile_model.dart';
+import 'package:u_nidos/publication/repository/rating_repository.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -34,7 +36,7 @@ class _PerfilPageState extends State<PerfilPage> {
     'Campus Sarapiquí',
     'Campus Liberia',
     'Campus Nicoya',
-    'Campus Puntarenas'
+    'Campus Puntarenas',
   ];
 
   Future<void> _cerrarSesionYSalir() async {
@@ -66,23 +68,26 @@ class _PerfilPageState extends State<PerfilPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // ✅ Solo se llena si están vacíos (para no sobrescribir cambios manuales)
             if (nombreCtrl.text.isEmpty) nombreCtrl.text = state.nombre;
             if (carreraCtrl.text.isEmpty) carreraCtrl.text = state.carrera;
             if (campusCtrl.text.isEmpty) campusCtrl.text = state.campus;
-            if (habilidadesCtrl.text.isEmpty) habilidadesCtrl.text = state.habilidades;
-            if (anioIngresoCtrl.text.isEmpty) anioIngresoCtrl.text = state.anioIngreso.toString();
+            if (habilidadesCtrl.text.isEmpty)
+              habilidadesCtrl.text = state.habilidades;
+            if (anioIngresoCtrl.text.isEmpty)
+              anioIngresoCtrl.text = state.anioIngreso.toString();
             if (emailCtrl.text.isEmpty) emailCtrl.text = state.email;
             if (fechaNacimiento == null) {
               fechaNacimiento = state.fechaNacimiento;
-              fechaNacimientoCtrl.text = fechaNacimiento != null
-                  ? DateFormat('dd/MM/yyyy').format(fechaNacimiento!)
-                  : '';
+              fechaNacimientoCtrl.text =
+                  fechaNacimiento != null
+                      ? DateFormat('dd/MM/yyyy').format(fechaNacimiento!)
+                      : '';
             }
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
                     controller: nombreCtrl,
@@ -95,13 +100,17 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: campusList.contains(campusCtrl.text) ? campusCtrl.text : null,
-                    items: campusList.map((campus) {
-                      return DropdownMenuItem(
-                        value: campus,
-                        child: Text(campus),
-                      );
-                    }).toList(),
+                    value:
+                        campusList.contains(campusCtrl.text)
+                            ? campusCtrl.text
+                            : null,
+                    items:
+                        campusList.map((campus) {
+                          return DropdownMenuItem(
+                            value: campus,
+                            child: Text(campus),
+                          );
+                        }).toList(),
                     onChanged: (nuevoCampus) {
                       if (nuevoCampus != null) {
                         setState(() {
@@ -115,7 +124,9 @@ class _PerfilPageState extends State<PerfilPage> {
                   TextField(
                     controller: anioIngresoCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Año de ingreso'),
+                    decoration: const InputDecoration(
+                      labelText: 'Año de ingreso',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -125,24 +136,27 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () async {
-                      final DateTime? selected = await showDatePicker(
+                      final selected = await showDatePicker(
                         context: context,
                         initialDate: fechaNacimiento ?? DateTime(2000),
                         firstDate: DateTime(1900),
                         lastDate: DateTime.now(),
                       );
-                      if (selected != null) {
+                      if (selected != null && mounted) {
                         setState(() {
                           fechaNacimiento = selected;
-                          fechaNacimientoCtrl.text =
-                              DateFormat('dd/MM/yyyy').format(selected);
+                          fechaNacimientoCtrl.text = DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(selected);
                         });
                       }
                     },
                     child: AbsorbPointer(
                       child: TextField(
                         controller: fechaNacimientoCtrl,
-                        decoration: const InputDecoration(labelText: 'Fecha de nacimiento'),
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha de nacimiento',
+                        ),
                       ),
                     ),
                   ),
@@ -155,8 +169,6 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
-                      print('📤 Campus seleccionado: ${campusCtrl.text}');
-
                       final nuevoUsuario = UsuarioModel(
                         uid: uid,
                         nombre: nombreCtrl.text.trim(),
@@ -184,6 +196,104 @@ class _PerfilPageState extends State<PerfilPage> {
                       minimumSize: const Size(double.infinity, 50),
                     ),
                     child: const Text('Guardar cambios'),
+                  ),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Historial de calificaciones de servicios ofrecidos',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  FutureBuilder<QuerySnapshot>(
+                    future:
+                        FirebaseFirestore.instance
+                            .collection('publicaciones')
+                            .where('uid', isEqualTo: uid)
+                            .orderBy('timestamp', descending: true)
+                            .get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: Column(
+                            children: const [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 10),
+                              Text("Cargando servicios..."),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final publicaciones = snapshot.data?.docs ?? [];
+
+                      if (publicaciones.isEmpty) {
+                        return const Text('No has publicado servicios aún.');
+                      }
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: publicaciones.length,
+                        itemBuilder: (context, index) {
+                          final pub =
+                              publicaciones[index].data()
+                                  as Map<String, dynamic>;
+                          final fecha =
+                              pub['timestamp'] != null
+                                  ? DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(pub['timestamp'].toDate())
+                                  : 'Fecha desconocida';
+
+                          return FutureBuilder<double>(
+                            future: RatingRepository()
+                                .obtenerPromedioCalificacionServicio(
+                                  publicaciones[index].id,
+                                ),
+                            builder: (context, snapshot) {
+                              final promedio = snapshot.data ?? 0.0;
+
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                child: ListTile(
+                                  title: Text(
+                                    pub['categoria'] ?? 'Sin categoría',
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        pub['descripcion'] ?? 'Sin descripción',
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text('Publicado: $fecha'),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          ...List.generate(5, (i) {
+                                            return Icon(
+                                              i < promedio.round()
+                                                  ? Icons.star
+                                                  : Icons.star_border,
+                                              color: Colors.amber,
+                                              size: 20,
+                                            );
+                                          }),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '(${promedio.toStringAsFixed(1)})',
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),

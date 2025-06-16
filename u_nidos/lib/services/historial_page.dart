@@ -2,116 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class HistorialPage extends StatefulWidget {
+class HistorialPage extends StatelessWidget {
   const HistorialPage({super.key});
-
-  @override
-  State<HistorialPage> createState() => _HistorialPageState();
-}
-
-class _HistorialPageState extends State<HistorialPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  String? uid;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    uid = FirebaseAuth.instance.currentUser?.uid;
-  }
 
   @override
   Widget build(BuildContext context) {
     final colorUniversidad = Theme.of(context).primaryColor;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historial'),
-        backgroundColor: colorUniversidad,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
-          tabs: const [Tab(text: 'Servicios'), Tab(text: 'Aprendí')],
+    return DefaultTabController(
+      length: 1,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Historial mi aprendizaje'),
+          backgroundColor: colorUniversidad,
+          bottom: const TabBar(
+            indicatorColor: Colors.transparent, // ✅ eliminamos la rayita
+            tabs: [Tab(text: 'Aprendí')],
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildPublicacionesPropias(), _buildAprendi()],
+        body: const TabBarView(children: [_AprendiTab()]),
       ),
     );
   }
+}
 
-  Widget _buildPublicacionesPropias() {
-    if (uid == null) {
-      return const Center(child: Text('Usuario no autenticado.'));
-    }
+class _AprendiTab extends StatelessWidget {
+  const _AprendiTab();
 
-    return StreamBuilder<QuerySnapshot>(
-      stream:
-          FirebaseFirestore.instance
-              .collection('publicaciones')
-              .where('uid', isEqualTo: uid)
-              .orderBy('timestamp', descending: true)
-              .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No hay elementos aún.'));
-        }
-
-        final docs = snapshot.data!.docs;
-
-        return ListView.builder(
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
-            final fecha = (data['timestamp'] as Timestamp).toDate();
-            final nombre = data['nombre'] ?? 'Sin nombre';
-            final descripcion = data['descripcion'] ?? '';
-            final calificacion = data['calificacion'] ?? 5;
-
-            return Card(
-              margin: const EdgeInsets.all(8),
-              color: Colors.white,
-              child: ListTile(
-                title: Text(nombre),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Fecha: ${fecha.day.toString().padLeft(2, '0')}/'
-                      '${fecha.month.toString().padLeft(2, '0')}/'
-                      '${fecha.year}',
-                    ),
-                    const SizedBox(height: 4),
-                    Text(descripcion),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: List.generate(5, (i) {
-                        return Icon(
-                          i < calificacion ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                          size: 20,
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildAprendi() {
     if (uid == null) {
       return const Center(child: Text('Usuario no autenticado.'));
     }
@@ -147,7 +68,6 @@ class _HistorialPageState extends State<HistorialPage>
 
             return Card(
               margin: const EdgeInsets.all(8),
-              color: Colors.white,
               child: ListTile(
                 title: Text(nombre),
                 subtitle: Column(
@@ -215,11 +135,5 @@ class _HistorialPageState extends State<HistorialPage>
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 }

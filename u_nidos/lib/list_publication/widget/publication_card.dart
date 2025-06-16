@@ -41,7 +41,8 @@ class _ServiceCardState extends State<ServiceCard> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+    final doc =
+        await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
     final data = doc.data();
 
     setState(() {
@@ -53,15 +54,15 @@ class _ServiceCardState extends State<ServiceCard> {
   }
 
   Future<void> verificarSiYaAprendio(String uid) async {
-    final snap = await FirebaseFirestore.instance
-        .collection('usuarios')
-        .doc(uid)
-        .collection('aprendi')
-        .where('idPublicacion', isEqualTo: widget.idPublicacion)
-        .limit(1)
-        .get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(uid)
+            .collection('aprendi')
+            .doc(widget.idPublicacion)
+            .get();
 
-    if (snap.docs.isNotEmpty) {
+    if (doc.exists) {
       setState(() => aprendido = true);
     }
   }
@@ -69,28 +70,32 @@ class _ServiceCardState extends State<ServiceCard> {
   Future<void> marcarComoAprendido() async {
     if (uidActual == null || aprendido) return;
 
-    // Obtener datos del usuario logueado
-    final userDoc = await FirebaseFirestore.instance.collection('usuarios').doc(uidActual).get();
+    final userDoc =
+        await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(uidActual)
+            .get();
     final userData = userDoc.data();
     final nombreUsuario = userData?['nombre'] ?? 'Sin nombre';
 
-    // Guardar en subcolección local
+    // ✅ Guardar con ID único para evitar duplicados
     await FirebaseFirestore.instance
         .collection('usuarios')
         .doc(uidActual)
         .collection('aprendi')
-        .add({
-      'idPublicacion': widget.idPublicacion,
-      'nombre': widget.name,
-      'descripcion': widget.description,
-      'fecha': Timestamp.now(),
-      'calificacion': 5,
-    });
+        .doc(widget.idPublicacion)
+        .set({
+          'idPublicacion': widget.idPublicacion,
+          'nombre': widget.name,
+          'descripcion': widget.description,
+          'fecha': Timestamp.now(),
+          'calificacion': 5,
+        });
 
     // Guardar en colección global de calificaciones
     await FirebaseFirestore.instance.collection('calificaciones').add({
       'idPublicacion': widget.idPublicacion,
-      'autorId': widget.name, // Aquí asumes que name es el autor. Mejor si pasas el uid real
+      'autorId': widget.name, // ⚠️ mejor si pasás uid del autor real
       'usuarioId': uidActual,
       'nombreUsuario': nombreUsuario,
       'calificacion': 5,
@@ -124,7 +129,6 @@ class _ServiceCardState extends State<ServiceCard> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Solo mostrar el check si el usuario actual no es el creador
                 if (nombreActual != null && nombreActual != widget.name)
                   IconButton(
                     icon: Icon(
@@ -138,14 +142,23 @@ class _ServiceCardState extends State<ServiceCard> {
                   icon: const Icon(Icons.more_horiz),
                   onSelected: (value) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('$value servicio de ${widget.name}')),
+                      SnackBar(
+                        content: Text('$value servicio de ${widget.name}'),
+                      ),
                     );
                   },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'Editar', child: Text('Editar')),
-                    PopupMenuItem(value: 'Eliminar', child: Text('Eliminar')),
-                    PopupMenuItem(value: 'Reportar', child: Text('Reportar')),
-                  ],
+                  itemBuilder:
+                      (context) => const [
+                        PopupMenuItem(value: 'Editar', child: Text('Editar')),
+                        PopupMenuItem(
+                          value: 'Eliminar',
+                          child: Text('Eliminar'),
+                        ),
+                        PopupMenuItem(
+                          value: 'Reportar',
+                          child: Text('Reportar'),
+                        ),
+                      ],
                 ),
               ],
             ),
@@ -171,9 +184,24 @@ class _ServiceCardState extends State<ServiceCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _botonAccion(Icons.remove_red_eye, 'Perfil', Colors.blueAccent, widget.onPerfil),
-                _botonAccion(Icons.chat_bubble_outline, 'Chat', Colors.green, widget.onChat),
-                _botonAccion(Icons.share, 'Compartir', Colors.deepPurple, widget.onCompartir),
+                _botonAccion(
+                  Icons.remove_red_eye,
+                  'Perfil',
+                  Colors.blueAccent,
+                  widget.onPerfil,
+                ),
+                _botonAccion(
+                  Icons.chat_bubble_outline,
+                  'Chat',
+                  Colors.green,
+                  widget.onChat,
+                ),
+                _botonAccion(
+                  Icons.share,
+                  'Compartir',
+                  Colors.deepPurple,
+                  widget.onCompartir,
+                ),
               ],
             ),
           ),
